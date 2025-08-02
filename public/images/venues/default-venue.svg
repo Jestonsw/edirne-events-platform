@@ -1,0 +1,35 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="buildingGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5F5DC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E6E6FA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#8FBC8F"/>
+  
+  <!-- Generic building -->
+  <rect x="120" y="120" width="160" height="100" fill="url(#buildingGrad)" stroke="#8B7355" stroke-width="2"/>
+  
+  <!-- Windows -->
+  <rect x="140" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="175" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="210" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="245" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  
+  <!-- Door -->
+  <rect x="185" y="180" width="30" height="40" fill="#8B4513"/>
+  <rect x="190" y="185" width="20" height="35" fill="#A0522D"/>
+  <circle cx="206" cy="202" r="2" fill="#FFD700"/>
+  
+  <!-- Icon placeholder -->
+  <circle cx="200" cy="90" r="20" fill="#DDD8C7" stroke="#8B7355" stroke-width="2"/>
+  <text x="200" y="98" text-anchor="middle" font-family="serif" font-size="20" fill="#8B7355">🏢</text>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Venue</text>
+</svg>

@@ -1,0 +1,65 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="modernGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F8F9FA;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E9ECEF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#6C757D"/>
+  
+  <!-- Modern building -->
+  <rect x="100" y="100" width="200" height="120" fill="url(#modernGrad)" stroke="#495057" stroke-width="2"/>
+  
+  <!-- Glass facade -->
+  <rect x="110" y="110" width="180" height="100" fill="#87CEEB" stroke="#495057" stroke-width="1" opacity="0.7"/>
+  
+  <!-- Large windows -->
+  <rect x="120" y="120" width="40" height="30" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <rect x="170" y="120" width="40" height="30" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <rect x="220" y="120" width="40" height="30" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  
+  <!-- Interior lighting -->
+  <rect x="125" y="125" width="30" height="20" fill="#FFF3E0" opacity="0.8"/>
+  <rect x="175" y="125" width="30" height="20" fill="#FFF3E0" opacity="0.8"/>
+  <rect x="225" y="125" width="30" height="20" fill="#FFF3E0" opacity="0.8"/>
+  
+  <!-- Modern entrance -->
+  <rect x="185" y="180" width="30" height="40" fill="#495057"/>
+  <rect x="190" y="185" width="20" height="35" fill="#6C757D"/>
+  
+  <!-- Automatic sliding doors -->
+  <rect x="192" y="187" width="7" height="30" fill="#B3E5FC" stroke="#0277BD" stroke-width="1"/>
+  <rect x="201" y="187" width="7" height="30" fill="#B3E5FC" stroke="#0277BD" stroke-width="1"/>
+  
+  <!-- Modern signage -->
+  <rect x="120" y="80" width="160" height="15" fill="#1976D2"/>
+  <text x="200" y="92" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#FFFFFF">CENTRAL CAFE & RESTAURANT</text>
+  
+  <!-- Outdoor seating -->
+  <rect x="70" y="190" width="60" height="30" fill="#F8F9FA" opacity="0.8"/>
+  <rect x="270" y="190" width="60" height="30" fill="#F8F9FA" opacity="0.8"/>
+  
+  <!-- Modern tables -->
+  <circle cx="90" cy="205" r="8" fill="#495057"/>
+  <circle cx="120" cy="205" r="8" fill="#495057"/>
+  <circle cx="290" cy="205" r="8" fill="#495057"/>
+  <circle cx="310" cy="205" r="8" fill="#495057"/>
+  
+  <!-- Contemporary chairs -->
+  <rect x="87" y="200" width="3" height="8" fill="#343A40"/>
+  <rect x="93" y="200" width="3" height="8" fill="#343A40"/>
+  <rect x="117" y="200" width="3" height="8" fill="#343A40"/>
+  <rect x="123" y="200" width="3" height="8" fill="#343A40"/>
+  
+  <!-- Decorative planters -->
+  <ellipse cx="80" cy="215" rx="8" ry="6" fill="#4CAF50"/>
+  <ellipse cx="320" cy="215" rx="8" ry="6" fill="#4CAF50"/>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Central Cafe & Restaurant</text>
+</svg>

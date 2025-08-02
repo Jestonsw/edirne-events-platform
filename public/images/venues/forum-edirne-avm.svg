@@ -1,0 +1,72 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F0F8FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E6E6FA;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#696969"/>
+  
+  <!-- Parking lot -->
+  <rect x="30" y="200" width="340" height="20" fill="#708090"/>
+  
+  <!-- Cars in parking -->
+  <rect x="50" y="205" width="15" height="8" fill="#FF6347" rx="2"/>
+  <rect x="80" y="205" width="15" height="8" fill="#4169E1" rx="2"/>
+  <rect x="110" y="205" width="15" height="8" fill="#32CD32" rx="2"/>
+  <rect x="300" y="205" width="15" height="8" fill="#FFD700" rx="2"/>
+  <rect x="330" y="205" width="15" height="8" fill="#FF69B4" rx="2"/>
+  
+  <!-- Main mall building -->
+  <rect x="80" y="80" width="240" height="120" fill="url(#mallGrad)" stroke="#4682B4" stroke-width="3"/>
+  
+  <!-- Upper floors -->
+  <rect x="90" y="90" width="220" height="25" fill="#F0F8FF" stroke="#4682B4" stroke-width="1"/>
+  <rect x="90" y="120" width="220" height="25" fill="#F0F8FF" stroke="#4682B4" stroke-width="1"/>
+  <rect x="90" y="150" width="220" height="25" fill="#F0F8FF" stroke="#4682B4" stroke-width="1"/>
+  
+  <!-- Large glass windows -->
+  <rect x="100" y="95" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="140" y="95" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="180" y="95" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="220" y="95" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="260" y="95" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  
+  <rect x="100" y="125" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="140" y="125" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="180" y="125" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="220" y="125" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="260" y="125" width="30" height="15" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  
+  <!-- Main entrance -->
+  <rect x="175" y="180" width="50" height="20" fill="#4682B4"/>
+  <rect x="180" y="185" width="40" height="15" fill="#191970"/>
+  
+  <!-- Automatic doors -->
+  <rect x="185" y="187" width="14" height="11" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="201" y="187" width="14" height="11" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  
+  <!-- Mall logo/sign -->
+  <rect x="120" y="55" width="160" height="20" fill="#191970"/>
+  <text x="200" y="68" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="#FFFFFF">FORUM EDİRNE AVM</text>
+  
+  <!-- Cinema sign -->
+  <rect x="250" y="155" width="50" height="15" fill="#FF6347"/>
+  <text x="275" y="165" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="#FFFFFF">SİNEMA</text>
+  
+  <!-- Food court sign -->
+  <rect x="100" y="155" width="60" height="15" fill="#32CD32"/>
+  <text x="130" y="165" text-anchor="middle" font-family="sans-serif" font-size="8" font-weight="bold" fill="#FFFFFF">FOOD COURT</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="45" r="8" fill="#FFD700"/>
+  <text x="200" y="50" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="bold" fill="#191970">★</text>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Forum Edirne AVM</text>
+</svg>

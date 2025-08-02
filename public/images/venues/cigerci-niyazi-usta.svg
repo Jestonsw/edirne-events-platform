@@ -1,0 +1,85 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="restaurantGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5DEB3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#8B7355"/>
+  
+  <!-- Traditional restaurant building -->
+  <rect x="80" y="120" width="240" height="100" fill="url(#restaurantGrad)" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Traditional red tile roof -->
+  <polygon points="70,120 200,90 330,120" fill="#8B0000"/>
+  <polygon points="70,120 75,115 205,85 200,90" fill="#A0522D"/>
+  <polygon points="200,90 205,85 335,115 330,120" fill="#A0522D"/>
+  
+  <!-- Chimney with smoke -->
+  <rect x="280" y="80" width="15" height="25" fill="#8B4513"/>
+  <ellipse cx="287" cy="75" rx="3" ry="8" fill="#D3D3D3" opacity="0.7"/>
+  <ellipse cx="285" cy="65" rx="4" ry="6" fill="#D3D3D3" opacity="0.5"/>
+  <ellipse cx="289" cy="55" rx="3" ry="5" fill="#D3D3D3" opacity="0.3"/>
+  
+  <!-- Traditional wooden signboard -->
+  <rect x="120" y="100" width="160" height="25" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+  <text x="200" y="117" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#FFFFFF">CİĞERCİ NİYAZİ USTA</text>
+  
+  <!-- Windows -->
+  <rect x="100" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="140" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="235" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  <rect x="275" y="140" width="25" height="20" fill="#87CEEB" stroke="#4169E1" stroke-width="1"/>
+  
+  <!-- Window frames -->
+  <line x1="112" y1="140" x2="112" y2="160" stroke="#4169E1" stroke-width="1"/>
+  <line x1="100" y1="150" x2="125" y2="150" stroke="#4169E1" stroke-width="1"/>
+  <line x1="152" y1="140" x2="152" y2="160" stroke="#4169E1" stroke-width="1"/>
+  <line x1="140" y1="150" x2="165" y2="150" stroke="#4169E1" stroke-width="1"/>
+  
+  <!-- Main entrance -->
+  <rect x="185" y="180" width="30" height="40" fill="#654321"/>
+  <rect x="190" y="185" width="20" height="35" fill="#8B4513"/>
+  <circle cx="206" cy="202" r="2" fill="#FFD700"/>
+  
+  <!-- Grill/cooking area visible through window -->
+  <rect x="175" y="145" width="50" height="15" fill="#FF4500" opacity="0.8"/>
+  <rect x="180" y="147" width="5" height="3" fill="#8B0000"/>
+  <rect x="190" y="147" width="5" height="3" fill="#8B0000"/>
+  <rect x="200" y="147" width="5" height="3" fill="#8B0000"/>
+  <rect x="210" y="147" width="5" height="3" fill="#8B0000"/>
+  
+  <!-- Smoke from grill -->
+  <ellipse cx="200" cy="140" rx="2" ry="5" fill="#D3D3D3" opacity="0.6"/>
+  <ellipse cx="202" cy="135" rx="3" ry="4" fill="#D3D3D3" opacity="0.4"/>
+  
+  <!-- Traditional lanterns -->
+  <rect x="75" y="130" width="8" height="12" fill="#FFD700" stroke="#8B4513" stroke-width="1"/>
+  <rect x="317" y="130" width="8" height="12" fill="#FFD700" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Outdoor seating area -->
+  <rect x="50" y="190" width="80" height="30" fill="#DEB887" opacity="0.7"/>
+  <rect x="270" y="190" width="80" height="30" fill="#DEB887" opacity="0.7"/>
+  
+  <!-- Tables and chairs -->
+  <circle cx="70" cy="205" r="6" fill="#8B4513"/>
+  <rect x="67" y="200" width="3" height="8" fill="#654321"/>
+  <rect x="73" y="200" width="3" height="8" fill="#654321"/>
+  
+  <circle cx="110" cy="205" r="6" fill="#8B4513"/>
+  <rect x="107" y="200" width="3" height="8" fill="#654321"/>
+  <rect x="113" y="200" width="3" height="8" fill="#654321"/>
+  
+  <!-- Menu board -->
+  <rect x="60" y="165" width="15" height="20" fill="#2F4F4F"/>
+  <text x="67" y="173" text-anchor="middle" font-family="sans-serif" font-size="6" fill="#FFFFFF">MENÜ</text>
+  <text x="67" y="180" text-anchor="middle" font-family="sans-serif" font-size="4" fill="#FFD700">CİĞER</text>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Ciğerci Niyazi Usta</text>
+</svg>

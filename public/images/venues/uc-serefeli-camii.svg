@@ -1,0 +1,70 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mosqueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5F5DC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#DDD8C7;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#8FBC8F"/>
+  
+  <!-- Main mosque building -->
+  <rect x="120" y="120" width="160" height="100" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="2"/>
+  
+  <!-- Central dome -->
+  <ellipse cx="200" cy="120" rx="45" ry="25" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="2"/>
+  
+  <!-- Side domes -->
+  <ellipse cx="150" cy="130" rx="20" ry="12" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <ellipse cx="250" cy="130" rx="20" ry="12" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  
+  <!-- Four minarets with different balconies (şerefe) -->
+  <!-- Left front minaret (3 şerefe) -->
+  <rect x="100" y="50" width="10" height="170" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="98" y="90" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="98" y="110" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="98" y="130" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <ellipse cx="105" cy="50" rx="6" ry="4" fill="#B8860B"/>
+  
+  <!-- Right front minaret (3 şerefe) -->
+  <rect x="290" y="50" width="10" height="170" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="288" y="90" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="288" y="110" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="288" y="130" width="14" height="6" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <ellipse cx="295" cy="50" rx="6" ry="4" fill="#B8860B"/>
+  
+  <!-- Left back minaret (2 şerefe) -->
+  <rect x="140" y="60" width="9" height="140" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="138" y="105" width="13" height="5" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="138" y="125" width="13" height="5" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <ellipse cx="144.5" cy="60" rx="5" ry="3" fill="#B8860B"/>
+  
+  <!-- Right back minaret (1 şerefe) -->
+  <rect x="250" y="65" width="9" height="135" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <rect x="248" y="120" width="13" height="5" fill="url(#mosqueGrad)" stroke="#B8860B" stroke-width="1"/>
+  <ellipse cx="254.5" cy="65" rx="5" ry="3" fill="#B8860B"/>
+  
+  <!-- Main entrance -->
+  <rect x="185" y="170" width="30" height="50" fill="#8B4513"/>
+  <path d="M 185 170 Q 200 160 215 170" fill="#8B4513"/>
+  
+  <!-- Decorative arch -->
+  <path d="M 180 175 Q 200 165 220 175" fill="none" stroke="#B8860B" stroke-width="2"/>
+  
+  <!-- Windows -->
+  <rect x="140" y="150" width="15" height="20" fill="#4169E1" opacity="0.6"/>
+  <rect x="170" y="150" width="15" height="20" fill="#4169E1" opacity="0.6"/>
+  <rect x="215" y="150" width="15" height="20" fill="#4169E1" opacity="0.6"/>
+  <rect x="245" y="150" width="15" height="20" fill="#4169E1" opacity="0.6"/>
+  
+  <!-- Calligraphy panel -->
+  <rect x="160" y="140" width="80" height="8" fill="#B8860B"/>
+  <text x="200" y="146" text-anchor="middle" font-family="serif" font-size="6" fill="#FFFFFF">بسم الله الرحمن الرحيم</text>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Üç Şerefeli Camii</text>
+</svg>

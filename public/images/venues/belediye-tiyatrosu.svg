@@ -1,0 +1,79 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2d1b69;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#553c9a;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="theaterGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f7fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#2d3748"/>
+  
+  <!-- Theater building -->
+  <rect x="60" y="100" width="280" height="120" fill="url(#theaterGrad)" stroke="#4a5568" stroke-width="2"/>
+  
+  <!-- Classical columns -->
+  <rect x="80" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="110" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="140" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="170" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="220" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="250" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="280" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  <rect x="310" y="120" width="12" height="80" fill="#f7fafc" stroke="#718096" stroke-width="1"/>
+  
+  <!-- Column capitals -->
+  <rect x="78" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="108" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="138" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="168" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="218" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="248" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="278" y="115" width="16" height="8" fill="#cbd5e0"/>
+  <rect x="308" y="115" width="16" height="8" fill="#cbd5e0"/>
+  
+  <!-- Triangular pediment -->
+  <polygon points="50,115 200,80 350,115" fill="#e2e8f0" stroke="#718096" stroke-width="2"/>
+  
+  <!-- Theater masks in pediment -->
+  <circle cx="180" cy="95" r="8" fill="#ffd700"/>
+  <path d="M 175 92 Q 180 88 185 92" fill="#000" stroke="#000" stroke-width="1"/>
+  <circle cx="176" cy="93" r="1" fill="#000"/>
+  <circle cx="184" cy="93" r="1" fill="#000"/>
+  <path d="M 177 98 Q 180 95 183 98" fill="none" stroke="#000" stroke-width="1"/>
+  
+  <circle cx="220" cy="95" r="8" fill="#ffd700"/>
+  <path d="M 215 92 Q 220 88 225 92" fill="#000" stroke="#000" stroke-width="1"/>
+  <circle cx="216" cy="93" r="1" fill="#000"/>
+  <circle cx="224" cy="93" r="1" fill="#000"/>
+  <path d="M 217 95 Q 220 98 223 95" fill="none" stroke="#000" stroke-width="1"/>
+  
+  <!-- Main entrance -->
+  <rect x="180" y="170" width="40" height="30" fill="#4a5568"/>
+  <rect x="185" y="175" width="30" height="25" fill="#2d3748"/>
+  
+  <!-- Double doors -->
+  <rect x="190" y="180" width="8" height="18" fill="#1a202c" stroke="#4a5568" stroke-width="1"/>
+  <rect x="202" y="180" width="8" height="18" fill="#1a202c" stroke="#4a5568" stroke-width="1"/>
+  <circle cx="196" cy="189" r="1" fill="#ffd700"/>
+  <circle cx="206" cy="189" r="1" fill="#ffd700"/>
+  
+  <!-- Steps -->
+  <rect x="70" y="195" width="260" height="5" fill="#a0aec0"/>
+  <rect x="75" y="200" width="250" height="5" fill="#a0aec0"/>
+  <rect x="80" y="205" width="240" height="5" fill="#a0aec0"/>
+  
+  <!-- Theater sign -->
+  <rect x="120" y="60" width="160" height="25" fill="#1a202c"/>
+  <text x="200" y="78" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#ffd700">EDİRNE BELEDİYE TİYATROSU</text>
+  
+  <!-- Spotlights -->
+  <circle cx="100" cy="180" r="4" fill="#ffd700" opacity="0.8"/>
+  <circle cx="300" cy="180" r="4" fill="#ffd700" opacity="0.8"/>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#f7fafc">Edirne Belediye Tiyatrosu</text>
+</svg>

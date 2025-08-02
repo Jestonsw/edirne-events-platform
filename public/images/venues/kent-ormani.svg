@@ -1,0 +1,78 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="180" width="400" height="120" fill="#228B22"/>
+  
+  <!-- Dense forest area -->
+  <ellipse cx="60" cy="120" rx="35" ry="50" fill="#006400"/>
+  <rect x="57" y="140" width="6" height="40" fill="#8B4513"/>
+  
+  <ellipse cx="120" cy="110" rx="40" ry="55" fill="#228B22"/>
+  <rect x="117" y="135" width="6" height="45" fill="#8B4513"/>
+  
+  <ellipse cx="180" cy="100" rx="30" ry="45" fill="#32CD32"/>
+  <rect x="177" y="120" width="6" height="35" fill="#8B4513"/>
+  
+  <ellipse cx="240" cy="115" rx="45" ry="60" fill="#006400"/>
+  <rect x="237" y="145" width="6" height="50" fill="#8B4513"/>
+  
+  <ellipse cx="300" cy="105" rx="35" ry="50" fill="#228B22"/>
+  <rect x="297" y="125" width="6" height="40" fill="#8B4513"/>
+  
+  <ellipse cx="340" cy="130" rx="25" ry="40" fill="#32CD32"/>
+  <rect x="337" y="145" width="6" height="35" fill="#8B4513"/>
+  
+  <!-- Forest undergrowth -->
+  <ellipse cx="90" cy="160" rx="15" ry="10" fill="#90EE90"/>
+  <ellipse cx="150" cy="155" rx="12" ry="8" fill="#90EE90"/>
+  <ellipse cx="210" cy="165" rx="18" ry="12" fill="#90EE90"/>
+  <ellipse cx="270" cy="160" rx="14" ry="9" fill="#90EE90"/>
+  
+  <!-- Walking trails -->
+  <path d="M 20 220 Q 80 210 150 220 Q 220 230 280 220 Q 340 210 380 220" 
+        fill="none" stroke="#8B7355" stroke-width="5"/>
+  <path d="M 10 250 Q 70 240 140 250 Q 210 260 270 250 Q 330 240 390 250" 
+        fill="none" stroke="#8B7355" stroke-width="5"/>
+  
+  <!-- Picnic areas -->
+  <rect x="100" y="240" width="50" height="35" fill="#8FBC8F" opacity="0.7"/>
+  <rect x="250" y="245" width="45" height="30" fill="#8FBC8F" opacity="0.7"/>
+  
+  <!-- Picnic tables -->
+  <rect x="115" y="255" width="20" height="4" fill="#8B4513"/>
+  <rect x="117" y="250" width="3" height="9" fill="#8B4513"/>
+  <rect x="130" y="250" width="3" height="9" fill="#8B4513"/>
+  
+  <rect x="265" y="260" width="20" height="4" fill="#8B4513"/>
+  <rect x="267" y="255" width="3" height="9" fill="#8B4513"/>
+  <rect x="280" y="255" width="3" height="9" fill="#8B4513"/>
+  
+  <!-- BBQ areas -->
+  <circle cx="130" cy="270" r="4" fill="#696969"/>
+  <circle cx="280" cy="270" r="4" fill="#696969"/>
+  
+  <!-- Children's playground -->
+  <rect x="180" y="230" width="40" height="30" fill="#F4A460" opacity="0.6"/>
+  <rect x="190" y="240" width="2" height="12" fill="#8B4513"/>
+  <rect x="200" y="240" width="2" height="12" fill="#8B4513"/>
+  <line x1="185" y1="240" x2="205" y2="240" stroke="#8B4513" stroke-width="2"/>
+  <rect x="187" y="251" width="6" height="2" fill="#FF6347"/>
+  <rect x="197" y="251" width="6" height="2" fill="#32CD32"/>
+  
+  <!-- Forest information board -->
+  <rect x="50" y="200" width="20" height="15" fill="#8B4513"/>
+  <rect x="52" y="202" width="16" height="11" fill="#F5DEB3"/>
+  <text x="60" y="210" text-anchor="middle" font-family="sans-serif" font-size="6" fill="#2F4F4F">Kent Ormanı</text>
+  
+  <!-- Wildlife -->
+  <circle cx="160" cy="200" r="2" fill="#A0522D"/>
+  <circle cx="220" cy="195" r="1.5" fill="#8B4513"/>
+  
+  <text x="200" y="290" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Edirne Kent Ormanı</text>
+</svg>

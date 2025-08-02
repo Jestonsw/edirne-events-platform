@@ -1,0 +1,49 @@
+{
+  "name": "etkinlik-rehberi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 5000",
+    "lint": "next lint",
+    "db:push": "drizzle-kit push:pg",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:migrate": "tsx src/lib/migrate.ts",
+    "backup:full": "node scripts/backup-system.js full",
+    "backup:export": "node scripts/backup-system.js export",
+    "backup:integrity": "node scripts/backup-system.js integrity",
+    "backup:cleanup": "node scripts/backup-system.js cleanup",
+    "convert-webp": "node scripts/convert-images-to-webp.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.7.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "@types/leaflet": "^1.9.8",
+    "@types/nodemailer": "^6.4.14",
+    "autoprefixer": "^10.4.16",
+    "clsx": "^2.0.0",
+    "date-fns": "^2.30.0",
+    "drizzle-kit": "^0.20.6",
+    "drizzle-orm": "^0.29.1",
+    "framer-motion": "^10.16.16",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.294.0",
+    "next": "14.0.4",
+    "nodemailer": "^6.9.7",
+    "postcss": "^8.4.32",
+    "postgres": "^3.4.7",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwindcss": "^3.3.6",
+    "tsx": "^4.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.0.10",
+    "@types/react": "19.1.8",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,55 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F5F5DC;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D2B48C;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#90EE90"/>
+  
+  <!-- Main building -->
+  <rect x="100" y="100" width="200" height="120" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="2"/>
+  
+  <!-- Multiple small domes (Bursa style) -->
+  <ellipse cx="130" cy="100" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="170" cy="100" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="210" cy="100" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="250" cy="100" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="270" cy="100" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  
+  <!-- Second row of domes -->
+  <ellipse cx="130" cy="130" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="170" cy="130" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="210" cy="130" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="250" cy="130" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="270" cy="130" rx="25" ry="15" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  
+  <!-- Two minarets -->
+  <rect x="70" y="50" width="12" height="170" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <rect x="68" y="120" width="16" height="8" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="76" cy="50" rx="8" ry="5" fill="#8B7355"/>
+  
+  <rect x="318" y="50" width="12" height="170" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <rect x="316" y="120" width="16" height="8" fill="url(#stoneGrad)" stroke="#8B7355" stroke-width="1"/>
+  <ellipse cx="324" cy="50" rx="8" ry="5" fill="#8B7355"/>
+  
+  <!-- Main entrance -->
+  <rect x="185" y="170" width="30" height="50" fill="#654321"/>
+  <path d="M 185 170 Q 200 160 215 170" fill="#654321"/>
+  
+  <!-- Windows pattern -->
+  <rect x="120" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  <rect x="140" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  <rect x="160" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  <rect x="220" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  <rect x="240" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  <rect x="260" y="150" width="12" height="18" fill="#4682B4" opacity="0.6"/>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="16" font-weight="bold" fill="#2F4F4F">Eski Camii</text>
+</svg>

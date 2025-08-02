@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment variables
+.env.local
+.env.production
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Cache
+.cache/
+*.tsbuildinfo
+
+# Uploads (keep structure but ignore actual files)
+public/uploads/*.jpg
+public/uploads/*.jpeg
+public/uploads/*.png
+public/uploads/*.gif
+public/uploads/*.webp
+
+# Backup files
+*.tar.gz
+*.zip
+*.backup
+
+# Database
+*.db
+*.sqlite
+
+# Temporary files
+temp/
+tmp/

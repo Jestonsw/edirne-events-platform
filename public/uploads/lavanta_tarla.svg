@@ -1,0 +1,49 @@
+<svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lavenderGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#E6E6FA"/>
+      <stop offset="50%" style="stop-color:#DDA0DD"/>
+      <stop offset="100%" style="stop-color:#9370DB"/>
+    </linearGradient>
+    <linearGradient id="fieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#90EE90"/>
+      <stop offset="100%" style="stop-color:#228B22"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Sky background -->
+  <rect width="400" height="200" fill="#87CEEB"/>
+  
+  <!-- Lavender field -->
+  <rect x="0" y="200" width="400" height="100" fill="url(#fieldGradient)"/>
+  
+  <!-- Lavender rows -->
+  <g stroke="#9370DB" stroke-width="3" opacity="0.8">
+    <line x1="0" y1="220" x2="400" y2="210"/>
+    <line x1="0" y1="240" x2="400" y2="230"/>
+    <line x1="0" y1="260" x2="400" y2="250"/>
+    <line x1="0" y1="280" x2="400" y2="270"/>
+  </g>
+  
+  <!-- Lavender flowers -->
+  <g fill="#9370DB">
+    <circle cx="50" cy="215" r="3"/>
+    <circle cx="120" cy="218" r="3"/>
+    <circle cx="180" cy="215" r="3"/>
+    <circle cx="250" cy="220" r="3"/>
+    <circle cx="320" cy="217" r="3"/>
+    <circle cx="80" cy="235" r="3"/>
+    <circle cx="150" cy="238" r="3"/>
+    <circle cx="220" cy="235" r="3"/>
+    <circle cx="290" cy="240" r="3"/>
+    <circle cx="360" cy="237" r="3"/>
+  </g>
+  
+  <!-- Sun -->
+  <circle cx="350" cy="50" r="30" fill="#FFD700"/>
+  
+  <!-- Title -->
+  <text x="200" y="50" text-anchor="middle" fill="#4B0082" font-family="Arial" font-size="24" font-weight="bold">
+    Lavanta Tarlası
+  </text>
+</svg>

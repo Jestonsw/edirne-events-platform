@@ -1,0 +1,47 @@
+<svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="stoneGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#F4A460;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D2691E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <rect width="400" height="300" fill="url(#skyGrad)"/>
+  <rect x="0" y="220" width="400" height="80" fill="#8FBC8F"/>
+  
+  <!-- Main caravanserai building -->
+  <rect x="50" y="120" width="300" height="100" fill="url(#stoneGrad)" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Central courtyard -->
+  <rect x="150" y="140" width="100" height="60" fill="#DEB887" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Side buildings -->
+  <rect x="60" y="130" width="80" height="80" fill="url(#stoneGrad)" stroke="#8B4513" stroke-width="1"/>
+  <rect x="260" y="130" width="80" height="80" fill="url(#stoneGrad)" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Arched entrance -->
+  <rect x="185" y="180" width="30" height="40" fill="#654321"/>
+  <path d="M 185 180 Q 200 170 215 180" fill="#654321" stroke="#8B4513" stroke-width="1"/>
+  
+  <!-- Small arches along the facade -->
+  <path d="M 70 160 Q 80 150 90 160" fill="none" stroke="#8B4513" stroke-width="2"/>
+  <path d="M 100 160 Q 110 150 120 160" fill="none" stroke="#8B4513" stroke-width="2"/>
+  <path d="M 280 160 Q 290 150 300 160" fill="none" stroke="#8B4513" stroke-width="2"/>
+  <path d="M 310 160 Q 320 150 330 160" fill="none" stroke="#8B4513" stroke-width="2"/>
+  
+  <!-- Windows -->
+  <rect x="75" y="150" width="10" height="15" fill="#4169E1" opacity="0.6"/>
+  <rect x="105" y="150" width="10" height="15" fill="#4169E1" opacity="0.6"/>
+  <rect x="285" y="150" width="10" height="15" fill="#4169E1" opacity="0.6"/>
+  <rect x="315" y="150" width="10" height="15" fill="#4169E1" opacity="0.6"/>
+  
+  <!-- Decorative elements -->
+  <circle cx="200" cy="135" r="8" fill="#B8860B"/>
+  <rect x="195" y="130" width="10" height="3" fill="#8B4513"/>
+  
+  <text x="200" y="280" text-anchor="middle" font-family="serif" font-size="14" font-weight="bold" fill="#2F4F4F">Rüstem Paşa Kervansarayı</text>
+</svg>
