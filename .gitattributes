@@ -1,0 +1,32 @@
+# Handle line endings automatically for cross-platform development
+* text=auto
+
+# Ensure shell scripts have correct line endings
+*.sh text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.mp4 binary
+*.mov binary
+*.avi binary
+
+# Font files
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# Archive files
+*.zip binary
+*.tar.gz binary
+*.7z binary
+
+# Exclude from Git stats (generated files)
+public/uploads/* linguist-generated=true
+.next/* linguist-generated=true
+node_modules/* linguist-vendored=true
