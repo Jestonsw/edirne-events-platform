@@ -46,22 +46,15 @@ export default function VenueSubmissionModal({ onClose, venueCategories = [] }: 
   
   // Load venue categories when modal opens
   useEffect(() => {
-    console.log('🚀 VenueSubmissionModal mounted!')
-    console.log('📋 Received venueCategories prop:', venueCategories?.length || 0)
-    
     const loadVenueCategories = async () => {
       try {
-        console.log('📋 Loading venue categories for modal...')
         const response = await fetch('/api/venue-categories')
         const data = await response.json()
-        console.log('📋 API response:', data)
-        console.log('📋 Venue categories loaded:', data.categories?.length || 0)
         if (data.categories && Array.isArray(data.categories)) {
           setLocalVenueCategories(data.categories)
-          console.log('✅ Local venue categories set:', data.categories.length)
         }
       } catch (error) {
-        console.error('❌ Error loading venue categories:', error)
+        console.error('Error loading venue categories:', error)
       }
     }
     

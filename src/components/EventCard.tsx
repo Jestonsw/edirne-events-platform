@@ -4,7 +4,7 @@ import { Calendar, MapPin, Heart, ExternalLink, Star } from 'lucide-react'
 import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { memo, useState, useCallback, useEffect } from 'react'
+import { memo, useState, useCallback, useMemo } from 'react'
 import Image from 'next/image'
 
 interface Event {
@@ -15,7 +15,7 @@ interface Event {
   endDate?: string
   startTime: string
   endTime?: string
-  location: string
+  venue: string
   address?: string
   organizerName?: string
   organizerContact?: string
@@ -24,12 +24,12 @@ interface Event {
   imageUrl?: string
   imageUrl2?: string
   imageUrl3?: string
+  mediaFiles?: string
   websiteUrl?: string
   ticketUrl?: string
   tags?: string | string[]
-  participantType: string
-  rating?: number
-  reviewCount?: number
+  participantType?: string
+
   isActive: boolean
   isFeatured: boolean
   createdAt: string
@@ -62,6 +62,11 @@ interface EventCardProps {
 const EventCard = memo(function EventCard({ event, category, isFavorite, onFavoriteToggle, onEventClick }: EventCardProps) {
   const { t, translateText } = useLanguage()
   const [imageError, setImageError] = useState(false)
+
+  // Handle card click
+  const handleCardClick = useCallback(() => {
+    onEventClick()
+  }, [onEventClick])
   
   const handleImageError = useCallback(() => {
     setImageError(true)
@@ -71,7 +76,30 @@ const EventCard = memo(function EventCard({ event, category, isFavorite, onFavor
     setImageError(false)
   }, [])
 
-
+  // Parse mediaFiles to get first image with rotation
+  const firstMedia = useMemo(() => {
+    try {
+      if (event.mediaFiles) {
+        const mediaArray = JSON.parse(event.mediaFiles)
+        if (Array.isArray(mediaArray) && mediaArray.length > 0) {
+          const firstMedia = mediaArray[0]
+          // Support both old string format and new {url, rotation} format
+          if (typeof firstMedia === 'string') {
+            return { url: firstMedia, rotation: 0 }
+          } else if (firstMedia && typeof firstMedia === 'object') {
+            return { 
+              url: firstMedia.url || firstMedia, 
+              rotation: firstMedia.rotation || 0 
+            }
+          }
+        }
+      }
+      // Fallback to old imageUrl fields
+      return { url: event.imageUrl, rotation: 0 }
+    } catch (error) {
+      return { url: event.imageUrl, rotation: 0 }
+    }
+  }, [event.mediaFiles, event.imageUrl])
 
   // Safe date parsing with fallbacks
   let startDate: Date
@@ -108,15 +136,32 @@ const EventCard = memo(function EventCard({ event, category, isFavorite, onFavor
   return (
     <div 
       className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer select-none" 
-      onClick={onEventClick}
+      onClick={handleCardClick}
     >
       <div className="flex">
         <div className="relative w-28 sm:w-32 h-28 sm:h-28 flex-shrink-0 p-1.5">
-          {/* Image Gallery - 3 photos */}
-          {(event.imageUrl || event.imageUrl2 || event.imageUrl3) && !imageError ? (
+          {/* Image Gallery with rotation support */}
+          {(firstMedia.url || event.imageUrl2 || event.imageUrl3) && !imageError ? (
             <div className="w-full h-full grid grid-cols-1 gap-0.5 rounded-lg border-2 border-red-500 overflow-hidden">
-              {/* Main image */}
-              {event.imageUrl && (
+              {/* Main image with rotation */}
+              {firstMedia.url && (
+                <div className="w-full h-full">
+                  <img
+                    src={firstMedia.url}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                    style={{
+                      transform: `rotate(${firstMedia.rotation}deg)`,
+                      transition: 'transform 0.3s ease'
+                    }}
+                    onLoad={handleImageLoad}
+                    onError={handleImageError}
+                  />
+                </div>
+              )}
+              
+              {/* Fallback to old imageUrl if no mediaFiles */}
+              {!firstMedia.url && event.imageUrl && (
                 <div className="w-full h-full">
                   <img
                     src={event.imageUrl}
@@ -185,66 +230,58 @@ const EventCard = memo(function EventCard({ event, category, isFavorite, onFavor
                   className="text-gray-400 hover:text-red-500 transition-colors"
                   title={t('events.favorite')}
                 >
-                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
+                  <Heart 
+                    size={16} 
+                    className={isFavorite ? 'fill-red-500 text-red-500' : ''}
+                  />
                 </button>
-              </div>
-            </div>
-
-            <div className="flex items-center text-xs text-blue-600 mb-1">
-              <Calendar className="w-3 h-3 mr-1" />
-              <span className="text-sm">{formattedDate}</span>
-              {event.startTime && (
-                <>
-                  <span className="mx-1 text-xs">•</span>
-                  <span className="text-xs">{event.startTime.slice(0, 5)}</span>
-                </>
-              )}
-            </div>
-
-            {/* Rating display */}
-            {event.rating && event.rating > 0 && (
-              <div className="flex items-center text-xs text-amber-600 mb-1">
-                <Star className="w-3 h-3 mr-1 fill-amber-400 text-amber-400" />
-                <span className="font-medium text-sm">{event.rating.toFixed(1)}</span>
-                {event.reviewCount && event.reviewCount > 0 && (
-                  <span className="text-gray-500 ml-1 text-xs">({event.reviewCount})</span>
+                {event.websiteUrl && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      window.open(event.websiteUrl, '_blank')
+                    }}
+                    className="text-gray-400 hover:text-blue-500 transition-colors"
+                    title={t('events.website')}
+                  >
+                    <ExternalLink size={16} />
+                  </button>
                 )}
               </div>
-            )}
-
-            <div className="flex items-center text-xs text-gray-600 mb-1">
-              <MapPin className="w-3 h-3 mr-1" />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (event.websiteUrl) {
-                    window.open(event.websiteUrl, '_blank')
-                  }
-                }}
-                className="text-xs text-gray-600 hover:text-blue-600 transition-colors line-clamp-1 text-left"
-              >
-                {translateText(event.location, true)}
-              </button>
             </div>
+            
+            <div className="space-y-1 text-xs text-gray-600">
+              <div className="flex items-center gap-1">
+                <Calendar size={12} className="text-red-500 flex-shrink-0" />
+                <span className="truncate">
+                  {formattedDate} • {event.startTime}
+                </span>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <MapPin size={12} className="text-red-500 flex-shrink-0" />
+                <span className="truncate">
+                  {translateText(event.venue, true)}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between mt-3">
+            <div className="flex items-center gap-1">
+              {category && (
+                <span 
+                  className="px-2 py-1 text-xs font-medium text-white rounded-full"
+                  style={{ backgroundColor: category.color }}
+                >
+                  {translateText(category.displayName, true)}
+                </span>
+              )}
+            </div>
+            
 
 
           </div>
-
-          {/* External link button */}
-          {event.websiteUrl && (
-            <div className="flex justify-end pt-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  window.open(event.websiteUrl, '_blank')
-                }}
-                className="text-blue-600 hover:text-blue-800 transition-colors"
-                title="Dış bağlantıya git"
-              >
-                <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
-          )}
         </div>
       </div>
     </div>

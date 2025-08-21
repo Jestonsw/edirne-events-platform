@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { tr } from 'date-fns/locale'
 import { useEffect, useState } from 'react'
 import SocialShareModal from './SocialShareModal'
-import EventReviews from './EventReviews'
+
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface Event {
@@ -23,14 +23,14 @@ interface Event {
   categoryId: number
   capacity?: number
   imageUrl?: string
-  imageUrl_2?: string
-  imageUrl_3?: string
+  imageUrl2?: string
+  imageUrl3?: string
+  mediaFiles?: string[]
   websiteUrl?: string
   ticketUrl?: string
   tags?: string | string[]
   participantType: string
-  rating?: number
-  reviewCount?: number
+
   isActive: boolean
   isFeatured: boolean
   createdAt: string
@@ -84,13 +84,26 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
   }, [])
   
   // Create images array from event data with proper API endpoint
-  const images = [event.imageUrl, event.imageUrl2, event.imageUrl3]
+  // Support unlimited media files
+  const allMediaFiles = [
+    // Traditional fields for backward compatibility
+    ...[event.imageUrl, event.imageUrl2, event.imageUrl3].filter(Boolean),
+    // New unlimited media files array
+    ...(event.mediaFiles || [])
+  ]
+  
+  // Remove duplicates and filter valid URLs
+  const mediaFiles = [...new Set(allMediaFiles)]
     .filter((url): url is string => Boolean(url))
     .map((url) => {
-      // Convert upload paths to API endpoint
+      // Convert API paths to correct endpoint
+      if (url.startsWith('/api/image/')) {
+        return url
+      }
+      // Convert upload paths to API endpoint  
       if (url.startsWith('/uploads/')) {
         const filename = url.split('/').pop()
-        return `/api/serve-image/${filename}`
+        return `/api/image/${filename}`
       }
       return url
     })
@@ -131,11 +144,11 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
   }
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length)
+    setCurrentImageIndex((prev) => (prev + 1) % mediaFiles.length)
   }
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentImageIndex((prev) => (prev - 1 + mediaFiles.length) % mediaFiles.length)
   }
 
   // Touch handlers for swipe gestures
@@ -155,7 +168,7 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
     const isLeftSwipe = distance > 50
     const isRightSwipe = distance < -50
 
-    if (images.length > 1) {
+    if (mediaFiles.length > 1) {
       if (isLeftSwipe) {
         nextImage()
       } else if (isRightSwipe) {
@@ -216,8 +229,8 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
 
         <div className="flex-1 overflow-y-auto">
         <div className="p-6">
-          {/* Image Gallery */}
-          {images.length > 0 && (
+          {/* Media Gallery (Images and Videos) */}
+          {mediaFiles.length > 0 && (
             <div className="mb-6 relative">
               <div 
                 className="relative overflow-hidden rounded-lg cursor-pointer group"
@@ -225,14 +238,29 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               >
-                <img
-                  src={images[currentImageIndex]}
-                  alt={`${event.title} - Resim ${currentImageIndex + 1}`}
-                  className="w-full h-80 object-contain bg-gray-50 transition-all duration-300 group-hover:scale-110"
-                  style={{ objectPosition: 'center center' }}
-                  onMouseEnter={() => setIsImageHovered(true)}
-                  onMouseLeave={() => setIsImageHovered(false)}
-                />
+                {/* Check if current media is video */}
+                {(mediaFiles[currentImageIndex].toLowerCase().includes('.mp4') || 
+                  mediaFiles[currentImageIndex].toLowerCase().includes('.mov') || 
+                  mediaFiles[currentImageIndex].toLowerCase().includes('.avi') ||
+                  mediaFiles[currentImageIndex].toLowerCase().includes('video')) ? (
+                  <video
+                    src={mediaFiles[currentImageIndex]}
+                    className="w-full h-80 object-contain bg-gray-50"
+                    controls
+                    preload="metadata"
+                    onMouseEnter={() => setIsImageHovered(true)}
+                    onMouseLeave={() => setIsImageHovered(false)}
+                  />
+                ) : (
+                  <img
+                    src={mediaFiles[currentImageIndex]}
+                    alt={`${event.title} - Medya ${currentImageIndex + 1}`}
+                    className="w-full h-80 object-contain bg-gray-50 transition-all duration-300 group-hover:scale-110"
+                    style={{ objectPosition: 'center center' }}
+                    onMouseEnter={() => setIsImageHovered(true)}
+                    onMouseLeave={() => setIsImageHovered(false)}
+                  />
+                )}
                 
                 {/* Hover Overlay */}
                 <div className={`absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center transition-opacity duration-300 ${
@@ -244,7 +272,7 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
                 </div>
                 
                 {/* Navigation Arrows */}
-                {images.length > 1 && (
+                {mediaFiles.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
@@ -261,28 +289,39 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
                   </>
                 )}
                 
-                {/* Image Counter */}
-                {images.length > 1 && (
+                {/* Media Counter */}
+                {mediaFiles.length > 1 && (
                   <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-sm">
-                    {currentImageIndex + 1} / {images.length}
+                    {currentImageIndex + 1} / {mediaFiles.length}
                   </div>
                 )}
               </div>
               
-              {/* Image Dots Indicator */}
-              {images.length > 1 && (
+              {/* Media Dots Indicator */}
+              {mediaFiles.length > 1 && (
                 <div className="flex justify-center mt-3 space-x-2">
-                  {images.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentImageIndex 
-                          ? 'bg-blue-600 scale-125' 
-                          : 'bg-gray-300 hover:bg-gray-400'
-                      }`}
-                    />
-                  ))}
+                  {mediaFiles.map((mediaUrl, index) => {
+                    const isVideo = mediaUrl.toLowerCase().includes('.mp4') || 
+                                   mediaUrl.toLowerCase().includes('.mov') || 
+                                   mediaUrl.toLowerCase().includes('.avi') ||
+                                   mediaUrl.toLowerCase().includes('video')
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`relative flex items-center justify-center w-6 h-6 rounded-full transition-all ${
+                          index === currentImageIndex 
+                            ? 'bg-blue-600 scale-110' 
+                            : 'bg-gray-300 hover:bg-gray-400'
+                        }`}
+                        title={isVideo ? 'Video' : 'Resim'}
+                      >
+                        <span className="text-xs text-white font-bold">
+                          {isVideo ? '📹' : '📷'}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -410,15 +449,7 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
                 )}
 
                 {/* Participant Type */}
-                {event.participantType && (
-                  <div className="flex items-center gap-3 mb-4">
-                    <Users className="w-5 h-5 text-gray-500" />
-                    <div>
-                      <p className="font-medium text-gray-900">Kimlere Yönelik</p>
-                      <p className="text-sm text-gray-600">{event.participantType}</p>
-                    </div>
-                  </div>
-                )}
+
 
 
 
@@ -456,12 +487,7 @@ export default function EventModal({ event, category, isFavorite, onClose, onFav
             </div>
           </div>
 
-          {/* Event Reviews Section */}
-          <EventReviews
-            eventId={event.id}
-            currentUserId={currentUser?.name}
-            eventTitle={event.title}
-          />
+
         </div>
         </div>
       </div>

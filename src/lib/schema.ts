@@ -14,6 +14,7 @@ export const events = pgTable('events', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
+  venue: varchar('venue', { length: 200 }),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
   startTime: varchar('start_time', { length: 5 }),
@@ -30,12 +31,19 @@ export const events = pgTable('events', {
   imageUrl: varchar('image_url', { length: 500 }),
   imageUrl2: varchar('image_url2', { length: 500 }),
   imageUrl3: varchar('image_url3', { length: 500 }),
+  mediaFiles: text('media_files'), // JSON string for unlimited media with rotations
   websiteUrl: varchar('website_url', { length: 500 }),
   ticketUrl: varchar('ticket_url', { length: 500 }),
   tags: text('tags'), // JSON string array
   participantType: varchar('participant_type', { length: 100 }).default('Tüm yaş grupları'),
+  submitterName: varchar('submitter_name', { length: 100 }),
+  submitterEmail: varchar('submitter_email', { length: 150 }),
+  submitterPhone: varchar('submitter_phone', { length: 20 }),
   rating: real('rating').default(0),
   reviewCount: integer('review_count').default(0),
+  hashtags: text('hashtags'),
+  likesCount: integer('likes_count').default(0),
+  viewsCount: integer('views_count').default(0),
   isActive: boolean('is_active').default(true),
   isFeatured: boolean('is_featured').default(false),
   createdAt: timestamp('created_at').defaultNow(),
@@ -122,6 +130,7 @@ export const pendingEvents = pgTable('pending_events', {
   id: serial('id').primaryKey(),
   title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
+  venue: varchar('venue', { length: 200 }),
   startDate: timestamp('start_date').notNull(),
   endDate: timestamp('end_date'),
   startTime: varchar('start_time', { length: 5 }),
@@ -138,6 +147,7 @@ export const pendingEvents = pgTable('pending_events', {
   imageUrl: varchar('image_url', { length: 500 }),
   imageUrl2: varchar('image_url2', { length: 500 }),
   imageUrl3: varchar('image_url3', { length: 500 }),
+  mediaFiles: text('media_files'), // JSON string array for unlimited media files
   websiteUrl: varchar('website_url', { length: 500 }),
   ticketUrl: varchar('ticket_url', { length: 500 }),
   tags: text('tags'), // JSON string array

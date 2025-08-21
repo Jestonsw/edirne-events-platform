@@ -329,7 +329,7 @@ export default function ProfileMenu({ onClose, initialModal, user, onLogout, onL
         setVenueSubmission({
           name: '', description: '', categoryId: 1, address: '', phone: '', email: '',
           website: '', capacity: '', openingHours: '', latitude: '', longitude: '', submitterName: '',
-          submitterEmail: '', submitterPhone: '', imageUrl: '', imageUrl_2: '', imageUrl_3: ''
+          submitterEmail: '', submitterPhone: '', imageUrl: '', imageUrl2: '', imageUrl3: ''
         })
         setVenueImages([])
         setActiveModal(null)

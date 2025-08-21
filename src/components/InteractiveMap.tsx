@@ -26,7 +26,6 @@ export default function InteractiveMap({
   // Hızlı konum butonları fonksiyonları
   const goToEdirneMerkez = () => {
     const edirneCoords = [41.6771, 26.5557]
-    console.log('🗺️ [DEBUG] Edirne Merkezi butonuna tıklandı:', edirneCoords)
     if (mapInstanceRef.current && markerRef.current) {
       markerRef.current.setLatLng(edirneCoords)
       mapInstanceRef.current.setView(edirneCoords, 15)
@@ -44,12 +43,10 @@ export default function InteractiveMap({
   }
 
   const getCurrentLocation = () => {
-    console.log('🗺️ [DEBUG] Mevcut konum butonuna tıklandı')
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const coords = [position.coords.latitude, position.coords.longitude]
-          console.log('🗺️ [DEBUG] GPS konumu alındı:', coords)
           if (mapInstanceRef.current && markerRef.current) {
             markerRef.current.setLatLng(coords)
             mapInstanceRef.current.setView(coords, 15)
@@ -57,7 +54,7 @@ export default function InteractiveMap({
           }
         },
         (error) => {
-          console.error('🗺️ [DEBUG] Konum alınamadı:', error)
+          console.error('Konum alınamadı:', error)
         }
       )
     }
@@ -123,7 +120,6 @@ export default function InteractiveMap({
         // Marker sürüklendiğinde callback çağır
         markerRef.current.on('dragend', (e: any) => {
           const { lat, lng } = e.target.getLatLng()
-          console.log('🗺️ [DEBUG] Marker sürüklendi:', { lat, lng })
           onLocationSelect(lat, lng)
         })
 
@@ -135,14 +131,12 @@ export default function InteractiveMap({
         markerRef.current.on('dragend', (e: any) => {
           markerRef.current.setOpacity(1)
           const { lat, lng } = e.target.getLatLng()
-          console.log('🗺️ [DEBUG] Marker drag end:', { lat, lng })
           onLocationSelect(lat, lng)
         })
 
         // Haritaya tıklandığında marker'ı taşı
         mapInstanceRef.current.on('click', (e: any) => {
           const { lat, lng } = e.latlng
-          console.log('🗺️ [DEBUG] Haritaya tıklandı:', { lat, lng })
           markerRef.current.setLatLng([lat, lng])
           onLocationSelect(lat, lng)
           
