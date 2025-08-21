@@ -1,0 +1,56 @@
+name: Code Cleanup Check
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  cleanup-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check for console.log statements
+      run: |
+        if grep -r "console.log" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx"; then
+          echo "❌ Console.log statements found in source code"
+          echo "Please remove debug statements before committing"
+          exit 1
+        else
+          echo "✅ No console.log statements found"
+        fi
+    
+    - name: Check for TODO comments
+      run: |
+        TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" | wc -l)
+        if [ $TODO_COUNT -gt 10 ]; then
+          echo "⚠️ High number of TODO comments found: $TODO_COUNT"
+          echo "Consider addressing some TODOs before releasing"
+        else
+          echo "✅ TODO count is acceptable: $TODO_COUNT"
+        fi
+    
+    - name: Check for large files
+      run: |
+        LARGE_FILES=$(find . -type f -size +10M ! -path "./node_modules/*" ! -path "./.git/*" ! -path "./.next/*")
+        if [ ! -z "$LARGE_FILES" ]; then
+          echo "❌ Large files found (>10MB):"
+          echo "$LARGE_FILES"
+          echo "Consider adding to .gitignore or optimizing"
+          exit 1
+        else
+          echo "✅ No large files found"
+        fi
+    
+    - name: Check for sensitive data patterns
+      run: |
+        SENSITIVE_PATTERNS="password|secret|api[_-]?key|token|credential"
+        if grep -r -i "$SENSITIVE_PATTERNS" src/ --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" | grep -v "process.env"; then
+          echo "⚠️ Potential sensitive data found in source code"
+          echo "Please review and ensure no secrets are committed"
+        else
+          echo "✅ No obvious sensitive data patterns found"
+        fi
