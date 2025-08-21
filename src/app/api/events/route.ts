@@ -56,6 +56,7 @@ export async function GET(request: Request) {
     const featured = searchParams.get('featured')
     const admin = searchParams.get('admin')
     const countOnly = searchParams.get('count') === 'true'
+    const latestOnly = searchParams.get('latest') === 'true'
 
     // Auto-deactivation removed - now only manual control from admin panel
     
@@ -110,6 +111,7 @@ export async function GET(request: Request) {
       id: events.id,
       title: events.title,
       description: events.description,
+      venue: events.venue,
       startDate: events.startDate,
       endDate: events.endDate,
       startTime: events.startTime,
@@ -124,12 +126,14 @@ export async function GET(request: Request) {
       imageUrl: events.imageUrl,
       imageUrl2: events.imageUrl2,
       imageUrl3: events.imageUrl3,
+      mediaFiles: events.mediaFiles,
       websiteUrl: events.websiteUrl,
       ticketUrl: events.ticketUrl,
       tags: events.tags,
       participantType: events.participantType,
       isActive: events.isActive,
       isFeatured: events.isFeatured,
+
       createdAt: events.createdAt,
       updatedAt: events.updatedAt
     }).from(events).where(conditions.length > 0 ? and(...conditions) : undefined).orderBy(events.startDate)
@@ -178,6 +182,14 @@ export async function GET(request: Request) {
       if (countOnly) {
         return NextResponse.json({ count: filteredResult.length })
       }
+
+      // If latest only requested, return latest update timestamp
+      if (latestOnly) {
+        const latestUpdate = filteredResult.length > 0 
+          ? Math.max(...filteredResult.map(event => new Date(event.updatedAt || event.createdAt || 0).getTime()))
+          : 0
+        return NextResponse.json({ latestUpdate })
+      }
       
       return NextResponse.json(filteredResult)
     }
@@ -185,6 +197,14 @@ export async function GET(request: Request) {
     // If count only requested, return count
     if (countOnly) {
       return NextResponse.json({ count: eventsWithCategories.length })
+    }
+
+    // If latest only requested, return latest update timestamp
+    if (latestOnly) {
+      const latestUpdate = eventsWithCategories.length > 0 
+        ? Math.max(...eventsWithCategories.map(event => new Date(event.updatedAt || event.createdAt || 0).getTime()))
+        : 0
+      return NextResponse.json({ latestUpdate })
     }
 
     // Add cache busting headers to force fresh data
@@ -209,15 +229,21 @@ export async function POST(request: Request) {
     if (!body.categoryIds || !Array.isArray(body.categoryIds) || body.categoryIds.length < 1 || body.categoryIds.length > 3) {
       return NextResponse.json({ error: 'En az 1, en fazla 3 kategori seçmelisiniz' }, { status: 400 })
     }
+
+    // Validate location (address or coordinates required)
+    if (!body.location && !body.address && (!body.latitude || !body.longitude)) {
+      return NextResponse.json({ error: 'Adres bilgisi veya konum seçimi gereklidir' }, { status: 400 })
+    }
     
     const newEvent = await db.insert(pendingEvents).values({
       title: body.title,
       description: body.description,
+      venue: body.venue,
       startDate: new Date(body.startDate),
       endDate: body.endDate ? new Date(body.endDate) : null,
       startTime: body.startTime && body.startTime.trim() !== '' ? body.startTime : null,
       endTime: body.endTime && body.endTime.trim() !== '' ? body.endTime : null,
-      location: body.location,
+      location: body.location || body.address || 'Konum belirtilmemiş',
       address: body.address,
       latitude: body.latitude ? parseFloat(body.latitude) : null,
       longitude: body.longitude ? parseFloat(body.longitude) : null,
@@ -229,6 +255,7 @@ export async function POST(request: Request) {
       imageUrl: body.imageUrl,
       imageUrl2: body.imageUrl2,
       imageUrl3: body.imageUrl3,
+      mediaFiles: JSON.stringify(body.mediaFiles || []), // Store unlimited media as JSON
       websiteUrl: body.websiteUrl,
       ticketUrl: body.ticketUrl,
       tags: body.tags ? JSON.stringify(body.tags) : null,
@@ -297,6 +324,7 @@ export async function PUT(request: Request) {
       .set({
         title: body.title,
         description: body.description,
+        venue: body.venue,
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
         startTime: body.startTime && body.startTime.trim() !== '' ? body.startTime : null,

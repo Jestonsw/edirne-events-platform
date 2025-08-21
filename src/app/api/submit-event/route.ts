@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       imageUrl: body.imageUrl,
       imageUrl2: body.imageUrl2,
       imageUrl3: body.imageUrl3,
+      mediaFiles: JSON.stringify(body.mediaFiles || []), // Store unlimited media as JSON
       websiteUrl: body.websiteUrl,
       ticketUrl: body.ticketUrl,
       tags: body.tags ? JSON.stringify(body.tags) : null,

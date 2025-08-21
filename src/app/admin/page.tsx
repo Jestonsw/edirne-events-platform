@@ -8,6 +8,7 @@ import InteractiveMap from '@/components/InteractiveMap'
 import FeedbackTab from '@/components/FeedbackTab'
 import AdminAnalytics from '@/components/AdminAnalytics'
 import BackupSecurityPanel from '@/components/BackupSecurityPanel'
+import EventSubmissionModal from '@/components/EventSubmissionModal'
 
 interface Event {
   id: number
@@ -32,6 +33,9 @@ interface Event {
   ticketUrl?: string
   tags?: string | string[]
   participantType: string
+  submitterName?: string
+  submitterEmail?: string
+  submitterPhone?: string
   isActive: boolean
   isFeatured: boolean
   createdAt: string
@@ -150,6 +154,8 @@ export default function AdminPanel() {
   const [editingEvent, setEditingEvent] = useState<Event | null>(null)
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null)
   const [editingVenueCategory, setEditingVenueCategory] = useState<VenueCategory | null>(null)
+  const [showEventReviewModal, setShowEventReviewModal] = useState(false)
+  const [reviewingEvent, setReviewingEvent] = useState<Event | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [email, setEmail] = useState('')
@@ -161,6 +167,9 @@ export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<'events' | 'categories' | 'venues' | 'venue-categories' | 'users' | 'pending-approvals' | 'feedback' | 'announcements' | 'analytics' | 'backup'>('events')
   const [reviewingItem, setReviewingItem] = useState<Event | Venue | null>(null)
   const [reviewType, setReviewType] = useState<'event' | 'venue'>('event')
+  const [mediaModalType, setMediaModalType] = useState<'photo' | 'video'>('photo')
+  const [showMediaModal, setShowMediaModal] = useState(false)
+  const [eventCategoryIds, setEventCategoryIds] = useState<number[]>([])
 
   const [formData, setFormData] = useState({
     title: '',
@@ -248,75 +257,7 @@ export default function AdminPanel() {
   })
   const [uploadingAnnouncementImage, setUploadingAnnouncementImage] = useState(false)
 
-  // Function to auto-deactivate expired events
-  const autoDeactivateExpiredEvents = async () => {
-    try {
-      const now = new Date()
-      let deactivatedCount = 0
-      
-      // Check each event for expiration
-      for (const event of events) {
-        let isExpired = false
-        
-        if (event.endDate) {
-          // If event has end date, check if it has passed
-          const endDateTime = new Date(event.endDate)
-          if (event.endTime) {
-            const [hours, minutes] = event.endTime.split(':')
-            endDateTime.setHours(parseInt(hours), parseInt(minutes))
-          }
-          isExpired = endDateTime < now
-        } else {
-          // If no end date, check if start date was more than 1 day ago
-          const startDateTime = new Date(event.startDate)
-          if (event.startTime) {
-            const [hours, minutes] = event.startTime.split(':')
-            startDateTime.setHours(parseInt(hours), parseInt(minutes))
-          }
-          const oneDayLater = new Date(startDateTime.getTime() + 24 * 60 * 60 * 1000)
-          isExpired = oneDayLater < now
-        }
-        
-        // Deactivate if expired and currently active
-        if (isExpired && event.isActive) {
-          const response = await fetch(`/api/events?id=${event.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isActive: false })
-          })
-          
-          if (response.ok) {
-            deactivatedCount++
-          }
-        }
-      }
-      
-      if (deactivatedCount > 0) {
 
-      }
-    } catch (error) {
-
-    }
-  }
-
-  // Function to manually check and deactivate expired events
-  const handleExpiredEventsCheck = async () => {
-    try {
-      const response = await fetch('/api/admin/expired-events', {
-        method: 'POST'
-      })
-      
-      if (response.ok) {
-        const result = await response.json()
-        alert(`${result.deactivatedCount} süresi dolan etkinlik pasif hale getirildi.`)
-        loadData() // Refresh the data
-      } else {
-        alert('Süresi dolan etkinlikler kontrol edilirken hata oluştu.')
-      }
-    } catch (error) {
-      alert('Süresi dolan etkinlikler kontrol edilirken hata oluştu.')
-    }
-  }
 
   useEffect(() => {
     // Check if already authenticated in session
@@ -457,46 +398,29 @@ export default function AdminPanel() {
   }
 
   const handleEdit = async (event: Event) => {
-    setEditingEvent(event)
-    
-    // Fetch categories for this event
-    let eventCategoryIds = []
     try {
-      const response = await fetch(`/api/events/${event.id}/categories`)
+      console.log('🔄 Admin: Fetching fresh event data for edit', event.id)
+      // Fetch fresh event data from database to ensure we have latest changes
+      const response = await fetch(`/api/events/${event.id}`)
       if (response.ok) {
-        const categories = await response.json()
-        eventCategoryIds = categories.map((cat: { categoryId: number }) => cat.categoryId)
+        const freshEventData = await response.json()
+        console.log('✅ Admin: Fresh event data fetched', {
+          id: freshEventData.id,
+          title: freshEventData.title,
+          updatedAt: freshEventData.updatedAt,
+          mediaFiles: freshEventData.mediaFiles
+        })
+        setEditingEvent(freshEventData)
+      } else {
+        console.warn('⚠️ Admin: Failed to fetch fresh data, using fallback')
+        // Fallback to existing event data
+        setEditingEvent(event)
       }
     } catch (error) {
-      // Fallback to single category if junction table lookup fails
-      eventCategoryIds = event.categoryId ? [event.categoryId] : []
+      console.error('❌ Admin: Error fetching fresh event data:', error)
+      // Fallback to existing event data
+      setEditingEvent(event)
     }
-    
-    setFormData({
-      title: event.title,
-      description: event.description,
-      startDate: event.startDate.split('T')[0],
-      endDate: event.endDate ? event.endDate.split('T')[0] : '',
-      startTime: event.startTime,
-      endTime: event.endTime || '',
-      location: event.location,
-      address: event.address || '',
-      latitude: event.latitude?.toString() || '',
-      longitude: event.longitude?.toString() || '',
-      organizerName: event.organizerName || '',
-      organizerContact: event.organizerContact || '',
-      categoryIds: eventCategoryIds,
-      capacity: event.capacity?.toString() || '',
-      imageUrl: event.imageUrl || '',
-      imageUrl2: event.imageUrl2 || '',
-      imageUrl3: event.imageUrl3 || '',
-      websiteUrl: event.websiteUrl || '',
-      ticketUrl: event.ticketUrl || '',
-      tags: Array.isArray(event.tags) ? event.tags.join(', ') : event.tags || '',
-      participantType: event.participantType,
-      isActive: event.isActive,
-      isFeatured: event.isFeatured
-    })
     setShowEventForm(true)
   }
 
@@ -748,7 +672,7 @@ export default function AdminPanel() {
 
 
 
-  // Splash screen functionality removed
+
 
   const resetForm = () => {
     setShowEventForm(false)
@@ -1579,7 +1503,8 @@ export default function AdminPanel() {
     }
   }
 
-  // Approval handlers
+  // Approval handlers - REMOVED: No longer used since EventSubmissionModal handles all media upload
+
   const handleEventApproval = async (eventId: number, action: 'approve' | 'reject') => {
     try {
       const response = await fetch('/api/admin/pending-events', {
@@ -1757,13 +1682,6 @@ export default function AdminPanel() {
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => setShowEventForm(true)}
-                className="bg-edirne-500 text-white px-4 py-2 rounded-lg hover:bg-edirne-600 transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Yeni Etkinlik
-              </button>
-              <button
                 onClick={handleLogout}
                 className="text-gray-600 hover:text-gray-800 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors text-sm"
               >
@@ -1926,112 +1844,93 @@ export default function AdminPanel() {
               <div className="p-6 border-b">
                 <h2 className="text-xl font-semibold text-gray-900">Etkinlikler ({events.length})</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Etkinlik</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yer/Mekan</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kategori</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {events.map((event) => {
-                      return (
-                        <tr key={event.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4">
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{event.title}</div>
-                              <div className="text-sm text-gray-500">{event.organizerName}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {format(new Date(event.startDate), 'dd.MM.yyyy', { locale: tr })}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">{event.location}</td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1">
-                              {event.categories && event.categories.length > 0 ? (
-                                event.categories.map((cat: { categoryId: number; categoryColor: string; categoryDisplayName: string }) => (
-                                  <span 
-                                    key={cat.categoryId}
-                                    className="px-2 py-1 rounded-full text-xs text-white font-medium"
-                                    style={{ backgroundColor: cat.categoryColor }}
-                                  >
-                                    {cat.categoryDisplayName}
-                                  </span>
-                                ))
-                              ) : (
-                                // Fallback to old single category display
-                                (() => {
-                                  const category = categories.find(c => c.id === event.categoryId)
-                                  return category && (
-                                    <span 
-                                      className="px-2 py-1 rounded-full text-xs text-white font-medium"
-                                      style={{ backgroundColor: category.color }}
-                                    >
-                                      {category.displayName}
-                                    </span>
-                                  )
-                                })()
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              event.isActive 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {event.isActive ? 'Aktif' : 'Pasif'}
+              <div className="p-6 space-y-4">
+                {events.map((event) => {
+                  return (
+                    <div key={event.id} className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                      {/* Event Image */}
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                        {event.imageUrl ? (
+                          <img 
+                            src={`/api/serve-image/${event.imageUrl.split('/').pop()}`}
+                            alt={event.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-edirne-400 to-edirne-600 flex items-center justify-center">
+                            <Calendar className="w-8 h-8 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Event Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold text-gray-900 truncate">{event.title}</h3>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <div>{event.organizerName ? `${event.organizerName} • ` : ''}{event.location}</div>
+                          <div>{format(new Date(event.startDate), 'dd MMMM yyyy • HH:mm', { locale: tr })}</div>
+                        </div>
+                      </div>
+
+                      {/* Categories */}
+                      <div className="flex flex-wrap gap-1">
+                        {event.categories && event.categories.length > 0 ? (
+                          event.categories.map((cat: { categoryId: number; categoryColor: string; categoryDisplayName: string }) => (
+                            <span 
+                              key={cat.categoryId}
+                              className="px-2 py-1 rounded-full text-xs text-white font-medium"
+                              style={{ backgroundColor: cat.categoryColor }}
+                            >
+                              {cat.categoryDisplayName}
                             </span>
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleEdit(event)}
-                                className="text-blue-600 hover:text-blue-800 p-1 rounded hover:bg-blue-50"
-                                title="Etkinliği düzenle"
+                          ))
+                        ) : (
+                          // Fallback to old single category display
+                          (() => {
+                            const category = categories.find(c => c.id === event.categoryId)
+                            return category && (
+                              <span 
+                                className="px-2 py-1 rounded-full text-xs text-white font-medium"
+                                style={{ backgroundColor: category.color }}
                               >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => handleEventStatusToggle(event.id, event.isActive)}
-                                className={`p-1 rounded transition-colors ${
-                                  event.isActive 
-                                    ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' 
-                                    : 'text-green-600 hover:text-green-800 hover:bg-green-50'
-                                }`}
-                                title={event.isActive ? 'Etkinliği pasifleştir' : 'Etkinliği aktifleştir'}
-                              >
-                                {event.isActive ? (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                                  </svg>
-                                ) : (
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
-                                )}
-                              </button>
-                              <button
-                                onClick={() => handleDelete(event.id)}
-                                className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50"
-                                title="Etkinliği sil"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                                {category.displayName}
+                              </span>
+                            )
+                          })()
+                        )}
+                      </div>
+
+                      {/* Status */}
+                      <div className="flex-shrink-0">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          event.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {event.isActive ? 'Aktif' : 'Pasif'}
+                        </span>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex space-x-2 flex-shrink-0">
+                        <button
+                          onClick={() => handleEdit(event)}
+                          className="text-blue-600 hover:text-blue-800 p-2 rounded hover:bg-blue-50"
+                          title="Etkinliği düzenle"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(event.id)}
+                          className="text-red-600 hover:text-red-800 p-2 rounded hover:bg-red-50"
+                          title="Etkinliği sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -2147,13 +2046,7 @@ export default function AdminPanel() {
             <div className="bg-white rounded-lg shadow-sm">
               <div className="p-6 border-b flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">Mekanlar ({venues.length})</h2>
-                <button
-                  onClick={() => setShowVenueForm(true)}
-                  className="bg-edirne-500 text-white px-4 py-2 rounded-lg hover:bg-edirne-600 transition-colors flex items-center gap-2"
-                >
-                  <Plus className="w-5 h-5" />
-                  Yeni Mekan
-                </button>
+
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
@@ -2789,8 +2682,8 @@ export default function AdminPanel() {
                         <div className="flex gap-2 ml-4">
                           <button
                             onClick={() => {
-                              setReviewingItem(event)
-                              setReviewType('event')
+                              setReviewingEvent(event)
+                              setShowEventReviewModal(true)
                             }}
                             className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                           >
@@ -2914,6 +2807,152 @@ export default function AdminPanel() {
                     {reviewType === 'event' ? (
                       /* Event Review Form - Matches EventSubmissionModal exactly */
                       <div className="space-y-4">
+                        {/* Media Upload Section - Same as user form */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-3">
+                            Fotoğraf ve Videolar
+                          </label>
+                          
+                          {/* Tab Navigation - Same as user form */}
+                          <div className="flex border-b border-gray-200 mb-4">
+                            <button
+                              type="button"
+                              onClick={() => setMediaModalType('photo')}
+                              className={`px-4 py-2 font-medium text-sm ${
+                                mediaModalType === 'photo'
+                                  ? 'text-blue-600 border-b-2 border-blue-600'
+                                  : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              📸 Fotoğraf
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMediaModalType('video')}
+                              className={`px-4 py-2 font-medium text-sm ml-6 ${
+                                mediaModalType === 'video'
+                                  ? 'text-red-600 border-b-2 border-red-600'
+                                  : 'text-gray-500 hover:text-gray-700'
+                              }`}
+                            >
+                              🎥 Video
+                            </button>
+                          </div>
+
+                          {/* Upload Button - Same as user form */}
+                          <button
+                            type="button"
+                            onClick={() => setShowMediaModal(true)}
+                            className={`w-full py-8 border-2 border-dashed rounded-lg text-center transition-colors ${
+                              mediaModalType === 'photo' 
+                                ? 'border-blue-300 bg-blue-50 hover:bg-blue-100 text-blue-600' 
+                                : 'border-red-300 bg-red-50 hover:bg-red-100 text-red-600'
+                            }`}
+                          >
+                            <div className="flex flex-col items-center">
+                              {mediaModalType === 'photo' ? (
+                                <>
+                                  📸
+                                  <span className="mt-2 text-sm font-medium">Fotoğraf Ekle</span>
+                                  <span className="mt-1 text-xs text-gray-500">Galeriden seç veya fotoğraf çek</span>
+                                </>
+                              ) : (
+                                <>
+                                  🎥
+                                  <span className="mt-2 text-sm font-medium">Video Ekle</span>
+                                  <span className="mt-1 text-xs text-gray-500">Video dosyası seç (Max 100MB)</span>
+                                </>
+                              )}
+                            </div>
+                          </button>
+
+                          {/* Preview uploaded media */}
+                          {((reviewingItem as Event)?.imageUrl || (reviewingItem as Event)?.imageUrl2 || (reviewingItem as Event)?.imageUrl3) && (
+                            <div className="mt-4">
+                              <div className="grid grid-cols-3 gap-4">
+                                {(reviewingItem as Event)?.imageUrl && (reviewingItem as Event).imageUrl.trim() !== '' && (
+                                  <div className="relative">
+                                    <img
+                                      src={
+                                        (reviewingItem as Event).imageUrl?.startsWith('/api/image/') 
+                                          ? (reviewingItem as Event).imageUrl
+                                          : (reviewingItem as Event).imageUrl?.startsWith('/uploads/') 
+                                            ? `/api/serve-image/${(reviewingItem as Event).imageUrl?.split('/').pop()}`
+                                            : (reviewingItem as Event).imageUrl
+                                      }
+                                      alt="Önizleme 1"
+                                      className="w-full h-32 object-cover rounded-lg border"
+                                      onError={(e) => {
+                                        console.log('Main preview image error:', (reviewingItem as Event).imageUrl)
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl: '' } as Event))}
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                )}
+                                {(reviewingItem as Event)?.imageUrl2 && (reviewingItem as Event).imageUrl2.trim() !== '' && (
+                                  <div className="relative">
+                                    <img
+                                      src={
+                                        (reviewingItem as Event).imageUrl2?.startsWith('/api/image/') 
+                                          ? (reviewingItem as Event).imageUrl2
+                                          : (reviewingItem as Event).imageUrl2?.startsWith('/uploads/') 
+                                            ? `/api/serve-image/${(reviewingItem as Event).imageUrl2?.split('/').pop()}`
+                                            : (reviewingItem as Event).imageUrl2
+                                      }
+                                      alt="Önizleme 2"
+                                      className="w-full h-32 object-cover rounded-lg border"
+                                      onError={(e) => {
+                                        console.log('Main preview image2 error:', (reviewingItem as Event).imageUrl2)
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl2: '' } as Event))}
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                )}
+                                {(reviewingItem as Event)?.imageUrl3 && (reviewingItem as Event).imageUrl3.trim() !== '' && (
+                                  <div className="relative">
+                                    <img
+                                      src={
+                                        (reviewingItem as Event).imageUrl3?.startsWith('/api/image/') 
+                                          ? (reviewingItem as Event).imageUrl3
+                                          : (reviewingItem as Event).imageUrl3?.startsWith('/uploads/') 
+                                            ? `/api/serve-image/${(reviewingItem as Event).imageUrl3?.split('/').pop()}`
+                                            : (reviewingItem as Event).imageUrl3
+                                      }
+                                      alt="Önizleme 3"
+                                      className="w-full h-32 object-cover rounded-lg border"
+                                      onError={(e) => {
+                                        console.log('Main preview image3 error:', (reviewingItem as Event).imageUrl3)
+                                        e.currentTarget.style.display = 'none'
+                                      }}
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl3: '' } as Event))}
+                                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
+                                    >
+                                      ×
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -2932,14 +2971,16 @@ export default function AdminPanel() {
                               Kategoriler (En az 1, en fazla 3 kategori seçiniz) *
                             </label>
                             <div className="relative">
-                              <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-left focus:outline-none focus:ring-2 focus:ring-edirne-500 flex flex-wrap gap-1 min-h-[40px] items-center">
-                                {(() => {
-                                  // Convert categoryId to array format for display
-                                  const categoryIds = (reviewingItem as Event)?.categoryId ? [(reviewingItem as Event).categoryId] : [];
-                                  return categoryIds.length === 0 ? (
+                              <button
+                                type="button"
+                                onClick={() => setShowCategoryModal(true)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-left focus:outline-none focus:ring-2 focus:ring-edirne-500 flex items-center justify-between"
+                              >
+                                <span className="flex flex-wrap gap-1">
+                                  {!eventCategoryIds || eventCategoryIds.length === 0 ? (
                                     <span className="text-gray-500">Kategori seçiniz...</span>
                                   ) : (
-                                    categoryIds.map((categoryId) => {
+                                    eventCategoryIds.map((categoryId) => {
                                       const category = categories.find(c => c.id === categoryId)
                                       return category ? (
                                         <span key={categoryId} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -2947,9 +2988,12 @@ export default function AdminPanel() {
                                         </span>
                                       ) : null
                                     })
-                                  );
-                                })()}
-                              </div>
+                                  )}
+                                </span>
+                                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -2966,10 +3010,11 @@ export default function AdminPanel() {
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Tarih ve Saat - Sadece başlangıç */}
+                        <div className="grid grid-cols-2 gap-3">
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Başlangıç Tarihi *
+                              Tarih *
                             </label>
                             <input
                               type="date"
@@ -2981,21 +3026,7 @@ export default function AdminPanel() {
                           
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Bitiş Tarihi
-                            </label>
-                            <input
-                              type="date"
-                              value={(reviewingItem as Event)?.endDate?.split('T')[0] || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, endDate: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Başlangıç Saati *
+                              Saat *
                             </label>
                             <input
                               type="time"
@@ -3004,37 +3035,12 @@ export default function AdminPanel() {
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
                             />
                           </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Bitiş Saati
-                            </label>
-                            <input
-                              type="time"
-                              value={(reviewingItem as Event)?.endTime || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, endTime: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                            />
-                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
+                          <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Yer/Mekan *
-                            </label>
-                            <input
-                              type="text"
-                              value={(reviewingItem as Event)?.location || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, location: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                              placeholder="Etkinlik mekanı adı"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Adres
+                              Adres *
                             </label>
                             <input
                               type="text"
@@ -3078,144 +3084,182 @@ export default function AdminPanel() {
 
 
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Kimlere Yönelik
-                            </label>
-                            <input
-                              type="text"
-                              value={(reviewingItem as Event)?.participantType || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, participantType: e.target.value } as Event))}
-                              placeholder="Örn: Herkes, Çocuklar, Aileler, Öğrenciler..."
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Kapasite
-                            </label>
-                            <input
-                              type="number"
-                              value={(reviewingItem as Event)?.capacity || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, capacity: parseInt(e.target.value) || null } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Organizatör
-                            </label>
-                            <input
-                              type="text"
-                              value={(reviewingItem as Event)?.organizerName || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, organizerName: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                              placeholder="Organizatör veya kurum adı"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Organizatör İletişim
-                            </label>
-                            <input
-                              type="text"
-                              value={(reviewingItem as Event)?.organizerContact || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, organizerContact: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                              placeholder="Telefon numarası veya e-posta adresi"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Event Images */}
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Etkinlik Görseli
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Website
                           </label>
-                          <div className="space-y-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleReviewImageUpload(e, 1)}
-                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-edirne-50 file:text-edirne-700 hover:file:bg-edirne-100"
-                            />
+                          <input
+                            type="url"
+                            value={(reviewingItem as Event)?.websiteUrl || ''}
+                            onChange={(e) => setReviewingItem(prev => ({ ...prev, websiteUrl: e.target.value } as Event))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
+                            placeholder="Website adresi"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Bilet URL
+                          </label>
+                          <input
+                            type="url"
+                            value={(reviewingItem as Event)?.ticketUrl || ''}
+                            onChange={(e) => setReviewingItem(prev => ({ ...prev, ticketUrl: e.target.value } as Event))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
+                            placeholder=""
+                          />
+                        </div>
+
+                        {/* Submitter Information */}
+                        <div className="border-t pt-6">
+                          <h4 className="text-lg font-semibold mb-4">İletişim Bilgileri</h4>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Ad Soyad *
+                              </label>
+                              <input
+                                type="text"
+                                value={(reviewingItem as Event)?.submitterName || ''}
+                                onChange={(e) => setReviewingItem(prev => ({ ...prev, submitterName: e.target.value } as Event))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                E-posta *
+                              </label>
+                              <input
+                                type="email"
+                                value={(reviewingItem as Event)?.submitterEmail || ''}
+                                onChange={(e) => setReviewingItem(prev => ({ ...prev, submitterEmail: e.target.value } as Event))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Telefon Numarası (Opsiyonel)
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="tel"
+                                value={(reviewingItem as Event)?.submitterPhone || ''}
+                                onChange={(e) => {
+                                  const cleaned = e.target.value.replace(/[^\d]/g, '')
+                                  const limited = cleaned.slice(0, 10)
+                                  setReviewingItem(prev => ({ ...prev, submitterPhone: limited } as Event))
+                                }}
+                                placeholder="5551234567"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Sadece rakam giriniz (örn: 5551234567)
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Fotoğraf ve Video Upload Sistemi */}
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">Fotoğraf ve Videolar</h4>
+                          
+                          {/* Tab Navigation */}
+                          <div className="flex border-b border-gray-200 mb-4">
+                            <button
+                              type="button"
+                              onClick={() => setMediaModalType('photo')}
+                              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                                mediaModalType === 'photo'
+                                  ? 'text-blue-600 border-blue-600'
+                                  : 'text-gray-500 border-transparent hover:text-gray-700'
+                              }`}
+                            >
+                              📷 Fotoğraf
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMediaModalType('video')}
+                              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                                mediaModalType === 'video'
+                                  ? 'text-red-600 border-red-600'
+                                  : 'text-gray-500 border-transparent hover:text-gray-700'
+                              }`}
+                            >
+                              🎥 Video
+                            </button>
+                          </div>
+
+                          {/* Upload Button */}
+                          <button
+                            type="button"
+                            onClick={() => setShowMediaModal(true)}
+                            className={`w-full px-4 py-3 border-2 border-dashed rounded-lg transition-colors ${
+                              mediaModalType === 'photo'
+                                ? 'border-blue-300 text-blue-600 hover:border-blue-400 hover:bg-blue-50'
+                                : 'border-red-300 text-red-600 hover:border-red-400 hover:bg-red-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-center space-x-2">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="text-sm font-medium">
+                                {mediaModalType === 'photo' ? 'Fotoğraf Ekle' : 'Video Ekle'}
+                              </span>
+                            </div>
+                          </button>
+
+                          {/* Media Grid Preview */}
+                          <div className="grid grid-cols-3 gap-3 mt-4">
                             {(reviewingItem as Event)?.imageUrl && (
-                              <div className="relative mt-3">
+                              <div className="relative group">
                                 <img
                                   src={(reviewingItem as Event).imageUrl?.startsWith('/uploads/') ? `/api/serve-image/${(reviewingItem as Event).imageUrl?.split('/').pop()}` : (reviewingItem as Event).imageUrl}
-                                  alt="Önizleme"
-                                  className="w-32 h-20 object-cover rounded border"
+                                  alt="Medya 1"
+                                  className="w-full h-20 object-cover rounded border"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl: '' } as Event))}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                   ×
                                 </button>
                               </div>
                             )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            İkinci Etkinlik Görseli
-                          </label>
-                          <div className="space-y-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleReviewImageUpload(e, 2)}
-                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-edirne-50 file:text-edirne-700 hover:file:bg-edirne-100"
-                            />
+                            
                             {(reviewingItem as Event)?.imageUrl2 && (
-                              <div className="relative mt-3">
+                              <div className="relative group">
                                 <img
                                   src={(reviewingItem as Event).imageUrl2?.startsWith('/uploads/') ? `/api/serve-image/${(reviewingItem as Event).imageUrl2?.split('/').pop()}` : (reviewingItem as Event).imageUrl2}
-                                  alt="İkinci Görsel Önizleme"
-                                  className="w-32 h-20 object-cover rounded border"
+                                  alt="Medya 2"
+                                  className="w-full h-20 object-cover rounded border"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl2: '' } as Event))}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                   ×
                                 </button>
                               </div>
                             )}
-                          </div>
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-3">
-                            Üçüncü Etkinlik Görseli
-                          </label>
-                          <div className="space-y-3">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => handleReviewImageUpload(e, 3)}
-                              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-edirne-50 file:text-edirne-700 hover:file:bg-edirne-100"
-                            />
+                            
                             {(reviewingItem as Event)?.imageUrl3 && (
-                              <div className="relative mt-3">
+                              <div className="relative group">
                                 <img
                                   src={(reviewingItem as Event).imageUrl3?.startsWith('/uploads/') ? `/api/serve-image/${(reviewingItem as Event).imageUrl3?.split('/').pop()}` : (reviewingItem as Event).imageUrl3}
-                                  alt="Üçüncü Görsel Önizleme"
-                                  className="w-32 h-20 object-cover rounded border"
+                                  alt="Medya 3"
+                                  className="w-full h-20 object-cover rounded border"
                                 />
                                 <button
                                   type="button"
                                   onClick={() => setReviewingItem(prev => ({ ...prev, imageUrl3: '' } as Event))}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                                 >
                                   ×
                                 </button>
@@ -3224,52 +3268,141 @@ export default function AdminPanel() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Website URL
-                            </label>
-                            <input
-                              type="url"
-                              value={(reviewingItem as Event)?.websiteUrl || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, websiteUrl: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                              placeholder="https://"
-                            />
+                        {/* Kullanıcının Yüklediği Medya ve Kategoriler */}
+                        <div className="bg-gray-50 p-4 rounded-lg border">
+                          <h4 className="text-sm font-medium text-gray-700 mb-3">Kullanıcının Gönderdiği Bilgiler</h4>
+                          
+                          {/* Debug Bilgisi */}
+                          <div className="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
+                            <strong>Debug Info:</strong><br/>
+                            imageUrl: {(reviewingItem as Event)?.imageUrl || 'YOK'}<br/>
+                            imageUrl2: {(reviewingItem as Event)?.imageUrl2 || 'YOK'}<br/>
+                            imageUrl3: {(reviewingItem as Event)?.imageUrl3 || 'YOK'}<br/>
+                            Kategoriler: {(reviewingItem as Event)?.categories?.length || 0} adet
                           </div>
                           
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                              Bilet URL
-                            </label>
-                            <input
-                              type="url"
-                              value={(reviewingItem as Event)?.ticketUrl || ''}
-                              onChange={(e) => setReviewingItem(prev => ({ ...prev, ticketUrl: e.target.value } as Event))}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                              placeholder="https://"
-                            />
+                          {/* Kategoriler */}
+                          <div className="mb-4">
+                            <label className="block text-xs font-medium text-gray-600 mb-2">Seçilen Kategoriler</label>
+                            <div className="flex flex-wrap gap-2">
+                              {(reviewingItem as Event)?.categories?.map((cat, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 text-xs rounded-full text-white"
+                                  style={{ backgroundColor: cat.categoryColor }}
+                                >
+                                  {cat.categoryIcon} {cat.categoryDisplayName}
+                                </span>
+                              )) || <span className="text-xs text-gray-500">Kategori bilgisi yok</span>}
+                            </div>
+                          </div>
+
+                          {/* Yüklenen Medya */}
+                          <div className="grid grid-cols-3 gap-4">
+                            {/* Görsel 1 */}
+                            {(reviewingItem as Event)?.imageUrl && (reviewingItem as Event).imageUrl.trim() !== '' && (
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Görsel 1</label>
+                                <img
+                                  src={
+                                    (reviewingItem as Event).imageUrl?.startsWith('/api/image/') 
+                                      ? (reviewingItem as Event).imageUrl
+                                      : (reviewingItem as Event).imageUrl?.startsWith('/uploads/') 
+                                        ? `/api/serve-image/${(reviewingItem as Event).imageUrl?.split('/').pop()}`
+                                        : (reviewingItem as Event).imageUrl
+                                  }
+                                  alt="Kullanıcı Görseli 1"
+                                  className="w-full h-20 object-cover rounded border"
+                                  onError={(e) => {
+                                    console.log('Image load error for:', (reviewingItem as Event).imageUrl)
+                                    e.currentTarget.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Görsel 2 */}
+                            {(reviewingItem as Event)?.imageUrl2 && (reviewingItem as Event).imageUrl2.trim() !== '' && (
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Görsel 2</label>
+                                <img
+                                  src={
+                                    (reviewingItem as Event).imageUrl2?.startsWith('/api/image/') 
+                                      ? (reviewingItem as Event).imageUrl2
+                                      : (reviewingItem as Event).imageUrl2?.startsWith('/uploads/') 
+                                        ? `/api/serve-image/${(reviewingItem as Event).imageUrl2?.split('/').pop()}`
+                                        : (reviewingItem as Event).imageUrl2
+                                  }
+                                  alt="Kullanıcı Görseli 2"
+                                  className="w-full h-20 object-cover rounded border"
+                                  onError={(e) => {
+                                    console.log('Image load error for:', (reviewingItem as Event).imageUrl2)
+                                    e.currentTarget.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )}
+                            
+                            {/* Görsel 3 */}
+                            {(reviewingItem as Event)?.imageUrl3 && (reviewingItem as Event).imageUrl3.trim() !== '' && (
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Görsel 3</label>
+                                <img
+                                  src={
+                                    (reviewingItem as Event).imageUrl3?.startsWith('/api/image/') 
+                                      ? (reviewingItem as Event).imageUrl3
+                                      : (reviewingItem as Event).imageUrl3?.startsWith('/uploads/') 
+                                        ? `/api/serve-image/${(reviewingItem as Event).imageUrl3?.split('/').pop()}`
+                                        : (reviewingItem as Event).imageUrl3
+                                  }
+                                  alt="Kullanıcı Görseli 3"
+                                  className="w-full h-20 object-cover rounded border"
+                                  onError={(e) => {
+                                    console.log('Image load error for:', (reviewingItem as Event).imageUrl3)
+                                    e.currentTarget.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                          
+                          {/* Medya Yok Mesajı */}
+                          {!(reviewingItem as Event)?.imageUrl && !(reviewingItem as Event)?.imageUrl2 && !(reviewingItem as Event)?.imageUrl3 && (
+                            <div className="text-center py-4 text-gray-500 text-sm">
+                              Bu etkinlik için medya dosyası yüklenmemiş
+                            </div>
+                          )}
+
+                          {/* Submitter Bilgileri */}
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <label className="block text-xs font-medium text-gray-600 mb-2">Gönderen Kişi Bilgileri</label>
+                            <div className="grid grid-cols-3 gap-4 text-xs">
+                              <div>
+                                <span className="font-medium">Ad:</span> {(reviewingItem as Event)?.submitterName || 'Belirtilmemiş'}
+                              </div>
+                              <div>
+                                <span className="font-medium">E-posta:</span> {(reviewingItem as Event)?.submitterEmail || 'Belirtilmemiş'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Telefon:</span> {(reviewingItem as Event)?.submitterPhone || 'Belirtilmemiş'}
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        <div className="flex justify-end space-x-4">
+                        <div className="flex justify-end space-x-3 pt-4">
                           <button
+                            type="button"
                             onClick={() => setReviewingItem(null)}
-                            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                            className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                           >
                             İptal
                           </button>
                           <button
+                            type="button"
                             onClick={async () => {
                               // Save changes to pending event and approve
                               const updatedEvent = reviewingItem as Event
-                              
-                              // Log image fields for debugging
-                              console.log('📤 Admin Update: Image fields check', {
-                                imageUrl: updatedEvent.imageUrl,
-                                imageUrl2: updatedEvent.imageUrl2,
-                                imageUrl3: updatedEvent.imageUrl3
-                              })
                               
                               try {
                                 console.log('Updating event:', updatedEvent.id, updatedEvent)
@@ -3300,15 +3433,77 @@ export default function AdminPanel() {
                                   alert(`Güncelleme başarısız: ${responseData.error || 'Bilinmeyen hata'}`)
                                 }
                               } catch (error) {
-                                console.error('Update error:', error)
-                                alert('Güncelleme sırasında hata oluştu: ' + (error instanceof Error ? error.message : 'Bilinmeyen hata'))
+                                console.error('Error updating event:', error)
+                                alert('Güncelleme sırasında hata oluştu')
                               }
                             }}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
                           >
-                            Kaydet ve Onayla
+                            ✅ Onayla ve Yayınla
                           </button>
                         </div>
+
+                        {/* Media Upload Modal */}
+                        {showMediaModal && (
+                          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                            <div className="bg-white rounded-lg max-w-sm w-full">
+                              <div className="p-4 border-b">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-semibold">
+                                    {mediaModalType === 'photo' ? '📷 Fotoğraf Ekle' : '🎥 Video Ekle'}
+                                  </h4>
+                                  <button
+                                    onClick={() => setShowMediaModal(false)}
+                                    className="text-gray-500 hover:text-gray-700"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              <div className="p-4 space-y-3">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const input = document.createElement('input')
+                                    input.type = 'file'
+                                    input.accept = mediaModalType === 'photo' ? 'image/*' : 'video/mp4,video/mov,video/avi'
+                                    input.onchange = (e: any) => {
+                                      const file = e.target.files[0]
+                                      if (file) {
+                                        handleAdminMediaUpload(file)
+                                      }
+                                    }
+                                    input.click()
+                                    setShowMediaModal(false)
+                                  }}
+                                  className="w-full flex items-center justify-center space-x-2 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  <span>Galeri</span>
+                                </button>
+                                
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    // Camera capture would go here in a real app
+                                    alert('Kamera özelliği geliştirme aşamasında')
+                                    setShowMediaModal(false)
+                                  }}
+                                  className="w-full flex items-center justify-center space-x-2 py-3 border border-gray-300 rounded-lg hover:bg-gray-50"
+                                >
+                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                  </svg>
+                                  <span>Kamera</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       /* Venue Review Form */
@@ -3739,443 +3934,25 @@ export default function AdminPanel() {
 
       </main>
 
-      {/* Event Form Modal */}
-      {showEventForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                {editingEvent ? 'Etkinlik Düzenle' : 'Yeni Etkinlik'}
-              </h3>
-              <button
-                onClick={resetForm}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Etkinlik Adı *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-                
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Kategoriler (En az 1, en fazla 3 kategori seçiniz) *
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setShowCategoryModal(true)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-left focus:outline-none focus:ring-2 focus:ring-edirne-500 flex items-center justify-between"
-                    >
-                      <span className="flex flex-wrap gap-1">
-                        {formData.categoryIds.length === 0 ? (
-                          <span className="text-gray-500">Kategori seçiniz...</span>
-                        ) : (
-                          formData.categoryIds.map((categoryId) => {
-                            const category = categories.find(c => c.id === categoryId)
-                            return category ? (
-                              <span key={categoryId} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {category.displayName}
-                              </span>
-                            ) : null
-                          })
-                        )}
-                      </span>
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
-                  {(formData.categoryIds.length < 1 || formData.categoryIds.length > 3) && (
-                    <p className="text-red-500 text-xs mt-1">En az 1, en fazla 3 kategori seçmelisiniz</p>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Açıklama *
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Başlangıç Tarihi *
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bitiş Tarihi
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Başlangıç Saati *
-                  </label>
-                  <input
-                    type="time"
-                    required
-                    value={formData.startTime}
-                    onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bitiş Saati
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Yer/Mekan *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                    placeholder="Etkinlik mekanı adı"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Adres
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                    placeholder="Tam adres bilgisi"
-                  />
-                </div>
-              </div>
-
-              {/* Interactive Map for Location Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Yer/Mekan Seçimi
-                </label>
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <InteractiveMap
-                    latitude={formData.latitude ? parseFloat(formData.latitude) : 41.6781}
-                    longitude={formData.longitude ? parseFloat(formData.longitude) : 26.5584}
-                    onLocationSelect={handleEventLocationSelect}
-                    height="300px"
-                  />
-                </div>
-                
-                {formData.latitude && formData.longitude && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    Seçilen konum: {parseFloat(formData.latitude).toFixed(4)}, {parseFloat(formData.longitude).toFixed(4)}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kimlere Yönelik
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.participantType}
-                    onChange={(e) => setFormData({ ...formData, participantType: e.target.value })}
-                    placeholder="Örn: Herkes, Çocuklar, Aileler, Öğrenciler..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Kapasite
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.capacity}
-                    onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Organizatör
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.organizerName}
-                    onChange={(e) => setFormData({ ...formData, organizerName: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                    placeholder="Organizatör veya kurum adı"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Organizatör İletişim
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.organizerContact}
-                    onChange={(e) => setFormData({ ...formData, organizerContact: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                    placeholder="Telefon numarası veya e-posta adresi"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Etkinlik Görseli
-                </label>
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={uploadingImage}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                  {uploadingImage && (
-                    <p className="text-sm text-blue-600">Yükleniyor...</p>
-                  )}
-                  {formData.imageUrl && (
-                    <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-2">Resim Önizleme: {formData.imageUrl}</p>
-                      <div className="relative inline-block">
-                        <img
-                          src={formData.imageUrl.startsWith('/uploads/') ? `/api/serve-image/${formData.imageUrl.split('/').pop()}` : formData.imageUrl}
-                          alt="Önizleme"
-                          className="w-64 h-40 object-cover rounded border shadow-md"
-                          style={{ display: 'block', minHeight: '160px', backgroundColor: '#f3f4f6' }}
-                          onLoad={() => {/* Image loaded successfully */}}
-                          onError={(e) => {
-
-                            e.currentTarget.src = formData.imageUrl;
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <p className="text-xs text-green-600 mt-1">✓ Resim yüklendi</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  İkinci Etkinlik Görseli
-                </label>
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload2}
-                    disabled={uploadingImage2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                  {uploadingImage2 && (
-                    <p className="text-sm text-blue-600">Yükleniyor...</p>
-                  )}
-                  {formData.imageUrl2 && (
-                    <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-2">İkinci Resim Önizleme:</p>
-                      <div className="relative inline-block">
-                        <img
-                          src={formData.imageUrl2.startsWith('/uploads/') ? `/api/serve-image/${formData.imageUrl2.split('/').pop()}` : formData.imageUrl2}
-                          alt="İkinci Görsel Önizleme"
-                          className="w-64 h-40 object-cover rounded border shadow-md"
-                          onLoad={() => {/* Image 2 loaded successfully */}}
-                          onError={(e) => {
-
-                            e.currentTarget.src = formData.imageUrl2;
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, imageUrl2: '' })}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <p className="text-xs text-green-600 mt-1">✓ İkinci resim yüklendi</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Üçüncü Etkinlik Görseli
-                </label>
-                <div className="space-y-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload3}
-                    disabled={uploadingImage3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                  {uploadingImage3 && (
-                    <p className="text-sm text-blue-600">Yükleniyor...</p>
-                  )}
-                  {formData.imageUrl3 && (
-                    <div className="mt-3 p-2 bg-gray-50 rounded-lg">
-                      <p className="text-xs text-gray-600 mb-2">Üçüncü Resim Önizleme:</p>
-                      <div className="relative inline-block">
-                        <img
-                          src={formData.imageUrl3.startsWith('/uploads/') ? `/api/serve-image/${formData.imageUrl3.split('/').pop()}` : formData.imageUrl3}
-                          alt="Üçüncü Görsel Önizleme"
-                          className="w-64 h-40 object-cover rounded border shadow-md"
-                          onLoad={() => {/* Image 3 loaded successfully */}}
-                          onError={(e) => {
-
-                            e.currentTarget.src = formData.imageUrl3;
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, imageUrl3: '' })}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                        >
-                          ×
-                        </button>
-                      </div>
-                      <p className="text-xs text-green-600 mt-1">✓ Üçüncü resim yüklendi</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Website URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.websiteUrl}
-                    onChange={(e) => setFormData({ ...formData, websiteUrl: e.target.value })}
-                    placeholder="https://example.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Bilet URL
-                  </label>
-                  <input
-                    type="url"
-                    value={formData.ticketUrl}
-                    onChange={(e) => setFormData({ ...formData, ticketUrl: e.target.value })}
-                    placeholder="https://bilet.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-edirne-500"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-6">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isActive}
-                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">Aktif</span>
-                </label>
-                
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.isFeatured}
-                    onChange={(e) => setFormData({ ...formData, isFeatured: e.target.checked })}
-                    className="mr-2"
-                  />
-                  <span className="text-sm text-gray-700">Öne Çıkan</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-edirne-500 text-white rounded-lg hover:bg-edirne-600 flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  {editingEvent ? 'Güncelle' : 'Kaydet'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+      {/* Event Submission Modal (Admin Edit Mode) */}
+      {showEventForm && editingEvent && (
+        <EventSubmissionModal
+          key={`event-edit-${editingEvent.id}`}
+          onClose={() => {
+            setShowEventForm(false)
+            setEditingEvent(null)
+          }}
+          isAdminReview={true}
+          existingEvent={editingEvent}
+          onApprove={async () => {
+            // For edit mode, we handle update instead of approve
+            if (editingEvent) {
+              await loadEvents()
+            }
+            setShowEventForm(false)
+            setEditingEvent(null)
+          }}
+        />
       )}
 
       {/* Category Form Modal */}
@@ -5238,6 +5015,47 @@ export default function AdminPanel() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Event Review Modal */}
+      {showEventReviewModal && reviewingEvent && (
+        <EventSubmissionModal
+          onClose={() => {
+            setShowEventReviewModal(false)
+            setReviewingEvent(null)
+          }}
+          isAdminReview={true}
+          existingEvent={reviewingEvent}
+          onApprove={async () => {
+            if (reviewingEvent) {
+              try {
+                const response = await fetch('/api/admin/approve-event', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ 
+                    eventId: reviewingEvent.id, 
+                    eventData: reviewingEvent 
+                  })
+                })
+
+                if (response.ok) {
+                  const result = await response.json()
+                  alert(result.message)
+                  await loadData() // Refresh data
+                  setShowEventReviewModal(false)
+                  setReviewingEvent(null)
+                } else {
+                  const error = await response.json()
+                  alert(error.error || 'Etkinlik onaylanırken hata oluştu')
+                }
+              } catch (error) {
+                alert('İşlem sırasında hata oluştu')
+              }
+            }
+          }}
+        />
       )}
     </div>
   )

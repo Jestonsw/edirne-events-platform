@@ -31,6 +31,7 @@ interface Event {
   startTime: string
   endTime?: string
   location: string
+  venue?: string
   address?: string
   organizerName?: string
   organizerContact?: string
@@ -166,7 +167,6 @@ const formatDate = (date: Date, language: string) => {
     const monthIndex = date.getMonth()
     return `${day} ${months[monthIndex]}`
   } catch (error) {
-    console.error('formatDate error:', error)
     return '-- ---'
   }
 }
@@ -184,7 +184,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false)
   const [favorites, setFavorites] = useState<Set<number>>(new Set())
   const [showFavorites, setShowFavorites] = useState(false)
-  const [showInfo, setShowInfo] = useState(false)
+
 
   const [activeTab, setActiveTab] = useState<'events' | 'venues'>('events')
   const [activeBottomTab, setActiveBottomTab] = useState<'etkinlikle' | 'bugun' | 'islemler' | 'kesfet' | 'profil' | 'etkinlik-oner' | 'mekan-oner' | 'arkadas-bul' | 'grup-kur'>('etkinlikle')
@@ -193,6 +193,7 @@ export default function HomePage() {
   const [showMapView, setShowMapView] = useState(false)
   const [showProfileMenu, setShowProfileMenu] = useState(false)
   const [isOffline, setIsOffline] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const [usingCachedData, setUsingCachedData] = useState(false)
   const [venues, setVenues] = useState<Venue[]>([])
 
@@ -204,7 +205,6 @@ export default function HomePage() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
   const [showMembershipModal, setShowMembershipModal] = useState(false)
   const [membershipActionType, setMembershipActionType] = useState<'event' | 'venue'>('event')
-  const [isClient, setIsClient] = useState(false)
 
   const categoryStripRef = useRef<HTMLDivElement>(null)
   const dateStripRef = useRef<HTMLDivElement>(null)
@@ -570,16 +570,20 @@ export default function HomePage() {
     const interval = setInterval(async () => {
       try {
         if (activeTab === 'events') {
-          // Quick check for event changes
-          const response = await fetch(`/api/events?count=true&category=${selectedCategory || ''}&date=${selectedDate || ''}&t=${Date.now()}`)
+          // Quick check for event changes - check latest updated timestamp
+          const response = await fetch(`/api/events?latest=true&category=${selectedCategory || ''}&date=${selectedDate || ''}&t=${Date.now()}`)
           if (response.ok) {
-            const { count } = await response.json()
+            const { latestUpdate } = await response.json()
             
-            // Only reload if count changed
-            if (count !== lastEventCount) {
-              console.log(`🔄 SMART SYNC: Event changes detected (${lastEventCount} → ${count}), reloading...`)
+            // Store the latest timestamp we know about
+            if (!(window as any).lastKnownUpdate) {
+              (window as any).lastKnownUpdate = latestUpdate
+            }
+            
+            // Only reload if there's a newer update
+            if (latestUpdate !== (window as any).lastKnownUpdate) {
               await loadData(selectedCategory, selectedDate)
-              lastEventCount = count
+              ;(window as any).lastKnownUpdate = latestUpdate
             }
           }
         }
@@ -592,14 +596,13 @@ export default function HomePage() {
             
             // Only reload if count changed
             if (count !== lastVenueCount) {
-              console.log(`🔄 SMART SYNC: Venue changes detected (${lastVenueCount} → ${count}), reloading...`)
               await loadVenues()
               lastVenueCount = count
             }
           }
         }
       } catch (error) {
-        console.error('Smart sync error:', error)
+        // Silent error handling for smart sync
       }
     }, 3000) // Check every 3 seconds, but only reload when needed
 
@@ -610,7 +613,6 @@ export default function HomePage() {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && activeTab === 'events') {
-        console.log('🔄 Page visible - force refresh for admin updates')
         loadData(selectedCategory, selectedDate)
       }
     }
@@ -621,14 +623,15 @@ export default function HomePage() {
 
   // Optimize filtering with useMemo - API already handles category and date filtering
   const filteredEvents = useMemo(() => {
+    // Ensure events is always an array
+    if (!Array.isArray(events)) return []
+    
     let filtered = events
 
     // Show only favorites if favorites view is active
     if (showFavorites) {
       filtered = filtered.filter(event => favorites.has(event.id))
     }
-
-
 
     // Sort by date and featured status
     const sorted = filtered.sort((a, b) => {
@@ -816,9 +819,7 @@ export default function HomePage() {
                     <div className="text-center">
                       <div className="text-xs font-bold">BUGÜN</div>
                       <div className="text-xs">
-                        {today.getDate().toString().padStart(2, '0')} {
-                          ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'][today.getMonth()]
-                        }
+                        {isClient ? `${today.getDate().toString().padStart(2, '0')} ${['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'][today.getMonth()]}` : '-- ---'}
                       </div>
                     </div>
                   </button>
@@ -863,7 +864,7 @@ export default function HomePage() {
                             : 'bg-red-50 text-gray-700 font-medium hover:bg-red-100 border-black'
                         }`}
                       >
-                        {formatDate(date, language)}
+                        {isClient ? formatDate(date, language) : '--'}
                       </button>
                     )
                   })}
@@ -1190,37 +1191,7 @@ export default function HomePage() {
 
 
 
-      {/* Info Modal */}
-      {showInfo && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">{t('info.title')}</h3>
-              <button
-                onClick={() => setShowInfo(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="space-y-3 text-sm text-gray-600">
-              <p>{t('info.description')}</p>
-              <p><strong>{t('info.features')}</strong></p>
-              <ul className="list-disc list-inside space-y-1 ml-2">
-                <li>Güncel etkinlik listesi</li>
-                <li>Kategori ve tarih filtreleme</li>
-                <li>Favori etkinlikler</li>
-                <li>Arama özelliği</li>
-                <li>Detaylı etkinlik bilgileri</li>
-              </ul>
 
-              <p className="text-xs text-gray-500 mt-4">
-                {t('info.version')}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Map View Modal */}
       {showMapView && (
